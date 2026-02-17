@@ -28,8 +28,9 @@ public class AnalizadorLexico {
             archivo = new FileReader(rutaarchivo);
             lector = new BufferedReader(archivo);
             TablaSimbolos tablasimbolos = new TablaSimbolos();
+            Validador validador = new Validador();
 
-            //Mientras la cadena tenga datos, la leo por línea
+            //Mientras la cadena tenga datos, se lee por línea
             while ((cadena = lector.readLine()) != null) {
                 System.out.println("Linea " + linenum + ": " + cadena);
 
@@ -41,18 +42,24 @@ public class AnalizadorLexico {
                     String palabra = tokenizer.nextToken();
 
                     TablaSimbolos.tokentype type = tablasimbolos.Clasificar(palabra);
+                    
+                    validador.ValidarReservadas(palabra, type, linenum);
 
                     if (type != null) {
                         switch (type) {
                             case Reservada:
                                 System.out.println("Linea " + linenum + ": " + palabra + " es una palabra RESERVADA");
                                 break;
+
+                            case Identificador:
+                                System.out.println("Linea " + linenum + ": " + palabra + " es un IDENTIFICADOR");
+                                break;
                         }
                     } else {
-                        System.out.println("Linea " + linenum + ": " + palabra + " no es reservada");
+                        System.out.println("Linea " + linenum + ": " + palabra + " no esta detectada");
                     }
-                    linenum++;
                 }
+                linenum++;
             }
             lector.close();
         } catch (IOException e) {
