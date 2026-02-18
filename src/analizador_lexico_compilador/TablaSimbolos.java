@@ -45,12 +45,12 @@ public class TablaSimbolos {
            return tokentype.Tipo_dato;
        }
        
-       if (tokenNormalizado.matches(tokentype.Identificador.type)){
-           return tokentype.Identificador;
-       }
-       
        if (tokenNormalizado.matches(tokentype.Numero.type)){
            return tokentype.Numero;
+       }
+       
+       if (tokenNormalizado.matches(tokentype.Identificador.type)){
+           return tokentype.Identificador;
        }
        
        if (tokenNormalizado.matches(tokentype.Operador.type)){
