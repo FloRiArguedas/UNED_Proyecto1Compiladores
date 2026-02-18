@@ -26,7 +26,7 @@ public class Validador {
         return true;
     }
 
-    //VALIDACION #2 USO INCORRECTO PALABRAS RESERVADAS
+    //VALIDACION #2 USO INCORRECTO PALABRAS RESERVADAS (ERRORES 100)
     public boolean ValidarReservadas(String token, TablaSimbolos.tokentype type, int linenum) {
 
         //Paso 1: Verificar si las banderas están activas
@@ -35,6 +35,11 @@ public class Validador {
             BanderaIdent = false;
             if (type == TablaSimbolos.tokentype.Reservada) {
                 System.out.println("Linea " + linenum + ": ERROR 100. " + "La Palabra " + token + " no puede usarse como identificador");
+                return true; //Envio error a log
+            }
+            //Valido que el IDENT sea correcto luego de DIM (ERROR 205 FORMATO VARIABLES)
+            if (type != TablaSimbolos.tokentype.Identificador) {
+                System.out.println("Linea " + linenum + ": ERROR 205. " + "La Palabra " + token + " es un formato de identificador invalido");
                 return true; //Envio error a log
             }
         }
@@ -59,7 +64,7 @@ public class Validador {
         return false;
     }
 
-    //VALIDACION #3 FORMATO DECLARACION DE VARIABLES
+    //VALIDACION #3 FORMATO DECLARACION DE VARIABLES (ERRORES 200)
     public void ValidarDeclaracionDim(List<String> linea, List<TablaSimbolos.tokentype> tokentypes, int linenum) {
 
         //Valido si la linea esta vacia
@@ -76,7 +81,7 @@ public class Validador {
         //Verifico si la linea comienza con la palabra dim
         if (linea.get(0).equalsIgnoreCase("dim")) {
             //Verifico que dim aparezca luego de module
-            if (!EstaModule){
+            if (!EstaModule) {
                 System.out.println("Linea " + linenum + ": ERROR 204. Module debe aparecer antes de Dim");
             }
             //Llamo a la Funcion Validar para ver que tipo de expresion es
