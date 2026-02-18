@@ -16,31 +16,12 @@ public class Compilador {
         }
         String PathFile = args[0];
         //Se valida el tipo de archivo
-        Validador validador = new Validador();
-        if (!validador.ValidarTipoArchivo(PathFile)) {
+        if (!Validador.ValidarTipoArchivo(PathFile)) {
             return; //retorno si es false
         }
-        //Lectura del archivo
+        //Análisis del archivo
         AnalizadorLexico analizador = new AnalizadorLexico();
-        analizador.leer_archivo(PathFile);
+        analizador.analizar_archivo(PathFile);
         //**FIN FASE 1**
-
-        //**FASE 2 - CREAR ARCHIVO LOGS**
-        //Se crea el archivo logs
-        Registrador logs = new Registrador();
-        String LogsFilePath = logs.CrearArchivoLogs(PathFile);
-
-        //Se copia el archivo logs
-        if (LogsFilePath != null) {
-
-            boolean LogsFile = logs.CrearDuplicadoLogs(PathFile, LogsFilePath);
-
-            if (LogsFile) {
-                System.out.println("El arhivo para logs, se copio correctamente.");
-            } else {
-                System.out.println("No se pudo crear la copia numerada.");
-            }
-        }
-        //**FIN FASE 2**
     }
 }

@@ -48,30 +48,31 @@ public class Registrador {
         }
     }
 
-    /*FUNCION PARA HACER COPIA DEL ARCHIVO ORIGINAL, EN EL DE LOGS*/
-    public boolean CrearDuplicadoLogs(String OriginalPath, String PathLogs) {
-
-        try (BufferedReader Reader = new BufferedReader(new FileReader(OriginalPath));
-            BufferedWriter Writer = new BufferedWriter(new FileWriter(PathLogs, false))){
-            
-            /*Leer el archivo original y escribir en el archivo copia*/
-        
-            String line;
-            int numLine = 1;
-
-            while ((line = Reader.readLine()) != null) {
-
-                String Prefix = String.format("%04d", numLine);
-
-                Writer.write(Prefix + " " + line);
-                Writer.newLine();
-                numLine++;
-            }
-            return true;
-        } catch (IOException e) {
-            System.out.println("Error inicializando el archivo log: " + e.getMessage());
-            return false;
-        }
+    /*FUNCIONES PARA GENERAR LOGS*/
+    
+    private  BufferedWriter Writer;
+  
+    //FUNCION PARA SOBREESCRIBIR ARCHIVO LOGS
+    public void Sobreescribir (String PathLogs) throws IOException{
+        Writer = new BufferedWriter(new FileWriter(PathLogs, false));//con false sobreescribo
+    }
+  
+    //FUNCION PARA ESCRIBIR LAS LINEAS DEL ARCHIVO EN EL DE LOGS
+    public void EscribirLinea (int numLine, String line) throws IOException{
+        String Prefix = String.format("%04d", numLine);
+        Writer.write(Prefix + " " + line);
+        Writer.newLine();
+    }
+    
+    //FUNCION PARA ESCRIBIR ERRORES EN EL LOG
+    public void EscribirError(int numLine, String Error) throws IOException{
+        Writer.write("      " + Error);
+        Writer.newLine();
+    }
+    
+    //Cierro archivo logs
+    public void cerrarLogs() throws IOException {
+        if (Writer != null) Writer.close();
     }
 
 }

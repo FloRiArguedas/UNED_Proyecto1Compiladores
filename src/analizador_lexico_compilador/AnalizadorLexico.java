@@ -16,34 +16,43 @@ import java.util.StringTokenizer;
  */
 public class AnalizadorLexico {
 
-//LECTURA DEL ARCHIVO 
-    public void leer_archivo(String rutaarchivo) {
+//FUNCION COMPLETA PARA ANALIZAR EL ARCHIVO 
+    public void analizar_archivo(String rutaarchivo) {
 
-        FileReader archivo;
-        // Utilizo BufferedReader para leer línea por línea
-        BufferedReader lector;
         String cadena;
         int linenum = 1;
-
+        
         try {
             //Abro el archivo con la ruta proporcionada por el usuario
-            archivo = new FileReader(rutaarchivo);
-            lector = new BufferedReader(archivo);
+            FileReader archivo = new FileReader(rutaarchivo);
+            BufferedReader lector = new BufferedReader(archivo);
             TablaSimbolos tablasimbolos = new TablaSimbolos();
-            Validador validador = new Validador();
+            Registrador registrador = new Registrador();
+            Validador validador = new Validador(registrador);
+            
+            
+            //CREACION ARCHIVO LOGS
+            String FilelogsPath = registrador.CrearArchivoLogs(rutaarchivo);
+            //LIMPIO ARCHIVO LOGS
+            registrador.Sobreescribir(FilelogsPath);
 
-            //Mientras la cadena tenga datos, se lee por línea
+            //INICIAR LECTURA DEL ARCHIVO
             while ((cadena = lector.readLine()) != null) {
+                //TEMPORAL PARA MOSTRAR EN CONSOLA LAS LINEAS
                 System.out.println("Linea " + linenum + ": " + cadena);
+                
+                //ESCRIBIR EN ARCHIVO LOGS
+                registrador.EscribirLinea(linenum, cadena);
 
-                //Tokenizar las líneas leídas
+                //TOKENIZAR LINEAS LEIDAS
                 StringTokenizer tokenizer = new StringTokenizer(cadena);
+                
                 //Creo lista para guardar tokens de la linea
                 List<TablaSimbolos.tokentype> CompleteTokensLine = new ArrayList<>();
                 //Creo lista para guardar la linea
                 List<String> CompleteLine = new ArrayList<>();
 
-                //Clasificar los tokens
+                //CLASIFICACION DE TOKENS
                 while (tokenizer.hasMoreTokens()) {
                     String palabra = tokenizer.nextToken();
 
@@ -53,9 +62,31 @@ public class AnalizadorLexico {
                     CompleteTokensLine.add(type);
                     //Añado cada palabra a la lista de la linea
                     CompleteLine.add(palabra);
-
+                    
+                    //VALIDACION DE PALABRAS RESERVADAS
                     validador.ValidarReservadas(palabra, type, linenum);
 
+                }
+                
+                //VALIDACION DE FORMATOS DIM
+                validador.ValidarDeclaracionDim(CompleteLine, CompleteTokensLine, linenum);
+                
+                // PASO A LA SIGUIENTE LINEA DEL ARCHIVO
+                linenum++;
+            }
+            //Cierro los archivos
+            registrador.cerrarLogs();
+            lector.close();
+            
+        } catch (IOException e) {
+            System.out.println("Error: " + e.getMessage());
+        }
+    }
+    
+    
+    public void MostrarTypeConsola (TablaSimbolos.tokentype type, int linenum, String palabra){
+        
+        //MOSTRAR EL CONSOLA EL TIPO DE TOKEN
                     if (type != null) {
                         switch (type) {
                             case Reservada:
@@ -85,20 +116,10 @@ public class AnalizadorLexico {
                             case Asignacion:
                                 System.out.println("Linea " + linenum + ": " + palabra + " es una ASIGNACION");
                                 break;
-
                         }
                     } else {
                         System.out.println("Linea " + linenum + ": " + palabra + " no esta detectada");
                     }
-                }
-                //Valido formatos DIM
-                validador.ValidarDeclaracionDim(CompleteLine, CompleteTokensLine, linenum);
-                
-                linenum++;
-            }
-            lector.close();
-        } catch (IOException e) {
-            System.out.println("Error: " + e.getMessage());
-        }
+    
     }
 }
