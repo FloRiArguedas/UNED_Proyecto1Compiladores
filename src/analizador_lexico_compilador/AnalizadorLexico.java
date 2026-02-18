@@ -3,8 +3,10 @@ package analizador_lexico_compilador;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.StringTokenizer;
 
@@ -36,13 +38,22 @@ public class AnalizadorLexico {
 
                 //Tokenizar las líneas leídas
                 StringTokenizer tokenizer = new StringTokenizer(cadena);
+                //Creo lista para guardar tokens de la linea
+                List<TablaSimbolos.tokentype> CompleteTokensLine = new ArrayList<>();
+                //Creo lista para guardar la linea
+                List<String> CompleteLine = new ArrayList<>();
 
                 //Clasificar los tokens
                 while (tokenizer.hasMoreTokens()) {
                     String palabra = tokenizer.nextToken();
 
                     TablaSimbolos.tokentype type = tablasimbolos.Clasificar(palabra);
-                    
+
+                    //Añado cada tipo de token a la lista de la linea
+                    CompleteTokensLine.add(type);
+                    //Añado cada palabra a la lista de la linea
+                    CompleteLine.add(palabra);
+
                     validador.ValidarReservadas(palabra, type, linenum);
 
                     if (type != null) {
@@ -54,11 +65,35 @@ public class AnalizadorLexico {
                             case Identificador:
                                 System.out.println("Linea " + linenum + ": " + palabra + " es un IDENTIFICADOR");
                                 break;
+
+                            case Tipo_dato:
+                                System.out.println("Linea " + linenum + ": " + palabra + " es un TIPO DE DATO");
+                                break;
+
+                            case Numero:
+                                System.out.println("Linea " + linenum + ": " + palabra + " es un NUMERO");
+                                break;
+
+                            case Operador:
+                                System.out.println("Linea " + linenum + ": " + palabra + " es un OPERADOR");
+                                break;
+
+                            case OperadorAritmetico:
+                                System.out.println("Linea " + linenum + ": " + palabra + " es un OPERADOR ARITMETICO");
+                                break;
+
+                            case Asignacion:
+                                System.out.println("Linea " + linenum + ": " + palabra + " es una ASIGNACION");
+                                break;
+
                         }
                     } else {
                         System.out.println("Linea " + linenum + ": " + palabra + " no esta detectada");
                     }
                 }
+                //Valido formatos DIM
+                validador.ValidarDeclaracionDim(CompleteLine, CompleteTokensLine, linenum);
+                
                 linenum++;
             }
             lector.close();
