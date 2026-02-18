@@ -14,6 +14,7 @@ public class Validador {
     private boolean BanderaTD = false;
     //Diccionario para guardar variables nombre-tipo
     private final Map<String, String> variablesDeclaradas = new HashMap<>();
+    private boolean EstaModule = false;
 
     /* VALIDACION #1 TIPO ARCHIVO vb */
     public boolean ValidarTipoArchivo(String archivo) {
@@ -66,8 +67,18 @@ public class Validador {
             return;
         }
 
+        //Valido si la linea empieza con module
+        if (linea.get(0).equalsIgnoreCase("module")) {
+            EstaModule = true;
+            return;
+        }
+
         //Verifico si la linea comienza con la palabra dim
         if (linea.get(0).equalsIgnoreCase("dim")) {
+            //Verifico que dim aparezca luego de module
+            if (!EstaModule){
+                System.out.println("Linea " + linenum + ": ERROR 204. Module debe aparecer antes de Dim");
+            }
             //Llamo a la Funcion Validar para ver que tipo de expresion es
             TablaExpresiones.expresiones TipoExpresion = TablaExpresiones.validar(tokentypes);
             //Si la linea no coincide con una expresion, envio error
@@ -77,9 +88,7 @@ public class Validador {
             }
 
             //VALIDACIONES ADICIONALES PARA FORMATO 3
-            
             //VERIFICAR SI HAY VARIABLES DECLARADAS Y SUS TIPOS
-            
             //Guardo la variable (dim x as y)
             String NombreVariable = linea.get(1); //X
             String tipoDato = linea.get(3); //Y
@@ -140,7 +149,7 @@ public class Validador {
         // Si el operando no es numérico o un identificador, es inválido
         System.out.println("Linea " + linenum + ": ERROR 203. Operando inválido: '" + linea.get(5) + "'.");
     }
-    
+
     private void validarOperando2(List<String> linea, List<TablaSimbolos.tokentype> tokentypes, int linenum) {
 
         TablaSimbolos.tokentype tipoOp2 = tokentypes.get(7);
@@ -173,5 +182,4 @@ public class Validador {
         // Si el operando no es numérico o un identificador, es inválido
         System.out.println("Linea " + linenum + ": ERROR 203. Operando inválido: '" + linea.get(7) + "'.");
     }
-
 }
