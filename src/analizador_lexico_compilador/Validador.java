@@ -9,6 +9,7 @@ import java.util.Map;
  *
  * @author fargu
  */
+
 public class Validador {
 
     //Constructor (Tomado de la IA) Prompt #X
@@ -22,9 +23,9 @@ public class Validador {
     private boolean BanderaIdent = false;
     private boolean BanderaTD = false;
     private boolean EstaModule = false;
+    private boolean EstaImports = false;
     //Diccionario para guardar variables nombre-tipo
     private final Map<String, String> variablesDeclaradas = new HashMap<>();
-
 
     //VALIDACION #1 TIPO ARCHIVO vb
     public static boolean ValidarTipoArchivo(String archivo) {
@@ -100,10 +101,19 @@ public class Validador {
             return;
         }
 
-        //Valido si la linea empieza con module
-        if (linea.get(0).equalsIgnoreCase("module")) {
+        //Valido si existe Module
+        int indiceModule = -1;
+        for (int i = 0; i < linea.size(); i++) {
+            // Normalizo el token por si trae caracteres adicionales
+            String token = linea.get(i).replaceAll("[^A-Za-z]", "").toLowerCase();
+
+            if (token.equals("module")) {
+                indiceModule = i;
+                break;
+            }
+        } //Si encuentro el token module activo la bandera
+        if (indiceModule != -1) {
             EstaModule = true;
-            return;
         }
 
         //Verifico si la linea comienza con la palabra dim
@@ -118,7 +128,20 @@ public class Validador {
                     System.getLogger(Validador.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
                 }
             }
-            //Llamo a la Funcion Validar para ver que tipo de expresion es
+            //Verifico que la linea cumpla al menos con el formato mínimo: Dim nombreVariable As TipoDeDato
+            if (linea.size() < 4) {
+                String MensajeError = "ERROR 200: La declaracion de variable no coincide con el formato adecuado";
+                System.out.println("Linea " + linenum + MensajeError);
+                try {
+                    registrador.EscribirError(linenum, MensajeError);
+                } catch (IOException ex) {
+                    System.getLogger(Validador.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
+                }
+                return;
+            }
+            //Si la linea si cumple el formato mínimo, continuo con la evaluación
+            
+             //Llamo a la Funcion Validar para ver que tipo de expresion es
             TablaExpresiones.expresiones TipoExpresion = TablaExpresiones.validar(tokentypes);
             //Si la linea no coincide con una expresion, envio error
             if (TipoExpresion == null) {
@@ -133,17 +156,16 @@ public class Validador {
             }
 
             //VALIDACIONES ADICIONALES PARA FORMATO 3
-            //VERIFICAR SI HAY VARIABLES DECLARADAS Y SUS TIPOS
-            //Guardo la variable y su tipo en el diccionario (dim x as y)
+            //Guardo la variable y su tipo en el diccionario (Dim X As Tipo)
             String NombreVariable = linea.get(1); //X
-            String tipoDato = linea.get(3); //Y
+            String tipoDato = linea.get(3); //Tipo
             //las ingreso al diccionario
             variablesDeclaradas.put(
                     NombreVariable.toLowerCase(),
                     tipoDato.toLowerCase()
             );
 
-            //VERIFICAR OPERANDOS NUMERICOS
+            //SI LA EXPRESION ES FORMATO3 - VERIFICO OPERANDOS NUMERICOS
             if (TipoExpresion == TablaExpresiones.expresiones.DIM_F3_II
                     || TipoExpresion == TablaExpresiones.expresiones.DIM_F3_IN
                     || TipoExpresion == TablaExpresiones.expresiones.DIM_F3_NI
@@ -166,6 +188,7 @@ public class Validador {
             System.out.println("Linea " + linenum + ": Dim válido, la expresión es de tipo: = " + TipoExpresion);
         }
     }
+}
 
     //VALIDACION #3.1 FUNCIONES PARA VERIFICAR LOS OPERANDOS DEL FORMATO DE VARIABLES F3 
     //Funcion para encontrar la posición de la asignacion "="
@@ -290,7 +313,6 @@ public class Validador {
     }
 
     //FUNCIONES APARTE PARA LAS VALIDACIONES #4 DE ()
-    
     //VALIDACION #4.1: Parentesis de apertura y cierre ()
     private void ValidarParentesisCWL(List<String> linea, int linenum, int indiceCWL) {
 
@@ -347,7 +369,7 @@ public class Validador {
                 System.getLogger(Validador.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
             }
         }
-     }
+    }
 
     //VALIDACION #4.2: Texto entre comillas("")
     private void ValidarContenidoParentesis(String lineaString, int linenum) {
@@ -366,7 +388,7 @@ public class Validador {
 
         //Si los "( )" están correctos, extraigo el contenido dentro y elimino espacios.
         String ContenidoParentesis = lineaString.substring(ParentesisAbrir + 1, ParentesisCerrar).trim();
-        
+
         //VALIDACION#4.3 NO PUEDEN ESTAR VACIOS LOS "( )"
         if (ContenidoParentesis.isEmpty()) {
             String MensajeError = "ERROR 302: El contenido dentro de paréntesis no puede estar vacío.";
@@ -397,8 +419,47 @@ public class Validador {
             }
         }
 
-        
     }
 
-}
+    /*
+    //VALIDACION #5 ESTRUCTURA DE MODULE (ERRORES 400)
+    public void ValidarEstructuraModule(List<String> linea, List<TablaSimbolos.tokentype> tokentypes, int linenum) {
 
+        //Valido si la linea esta vacia
+        if (linea == null || linea.isEmpty()) {
+            return;
+        }
+
+        //Valido si la linea empieza con IMPORTS
+        if (linea.get(0).equalsIgnoreCase("imports")) {
+            EstaImports = true;
+        }
+
+        //Verifico si la linea comienza con la palabra module
+        if (linea.get(0).equalsIgnoreCase("module")) {
+            //Verifico que imports aparezca antes de module
+            if (!EstaImports) {
+                String MensajeError = "ERROR 400: Module debe aparecer después de Imports";
+                System.out.println("Linea " + linenum + MensajeError);
+                try {
+                    registrador.EscribirError(linenum, MensajeError);
+                } catch (IOException ex) {
+                    System.getLogger(Validador.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
+                }
+            }
+             //Llamo a la Funcion Validar para verificar que sea un identificador
+            TablaSimbolos.tokentype TokenType = TablaSimbolos.clasificar (tokentypes);
+            //Si la linea no coincide con una expresion, envio error
+            if (TokenType != "identificador") {
+                String MensajeError = "ERROR 401: Después de module debe haber un identificador válido.";
+                System.out.println("Linea " + linenum + MensajeError);
+                try {
+                    registrador.EscribirError(linenum, MensajeError);
+                } catch (IOException ex) {
+                    System.getLogger(Validador.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
+                }
+                return;
+        }
+
+    }*/
+}
