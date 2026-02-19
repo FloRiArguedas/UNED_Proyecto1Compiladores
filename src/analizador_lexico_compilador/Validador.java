@@ -26,7 +26,7 @@ public class Validador {
     private final Map<String, String> variablesDeclaradas = new HashMap<>();
 
 
-    /* VALIDACION #1 TIPO ARCHIVO vb */
+    //VALIDACION #1 TIPO ARCHIVO vb
     public static boolean ValidarTipoArchivo(String archivo) {
         /* Verifico el final del string */
         if (!archivo.endsWith(".vb")) {
@@ -51,7 +51,7 @@ public class Validador {
                 } catch (IOException ex) {
                     System.getLogger(Validador.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
                 }
-                return true; //Envio error a log
+                return true;
             }
             //Valido que el IDENT sea correcto luego de DIM (ERROR 205 FORMATO VARIABLES)
             if (type != TablaSimbolos.tokentype.Identificador) {
@@ -62,7 +62,7 @@ public class Validador {
                 } catch (IOException ex) {
                     System.getLogger(Validador.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
                 }
-                return true; //Envio error a log
+                return true;
             }
         }
 
@@ -167,7 +167,7 @@ public class Validador {
         }
     }
 
-    // VALIDACION #3 - FUNCIONES PARA VERIFICAR LOS OPERANDOS DEL FORMATO DE VARIABLES F3
+    //VALIDACION #3.1 FUNCIONES PARA VERIFICAR LOS OPERANDOS DEL FORMATO DE VARIABLES F3 
     //Funcion para encontrar la posición de la asignacion "="
     private int obtenerIndiceAsignacion(List<TablaSimbolos.tokentype> tokentypes) {
 
@@ -180,7 +180,7 @@ public class Validador {
         return -1; // si no existe retorno -1
     }
 
-    // Validación de los operandos - (Tomada de la IA y modificada) Prompt #X
+    //Validación de los operandos - (Tomada de la IA y modificada) Prompt #X
     private void ValidarOperando(List<String> linea, List<TablaSimbolos.tokentype> tokentypes, int linenum, int indiceOperando) {
 
         //Verifico que existan los dos operandos después del =
@@ -244,55 +244,161 @@ public class Validador {
         }
     }
 
-    //FUNCION ELIMINADA, SE OPTIMIZO CON LA IA.
-    /* private void validarOperando1(List<String> linea, List<TablaSimbolos.tokentype> tokentypes, int linenum) {
+    //VALIDACION #4 SENTENCIAS DE IMPRESION CON CONSOLE.WRITELINE (ERRORES 300)
+    public void ValidarSentenciasCWL(List<String> linea, int linenum) {
 
-        TablaSimbolos.tokentype tipoOp1 = tokentypes.get(5);
+        //Valido si la linea esta vacia
+        if (linea == null || linea.isEmpty()) {
+            return;
+        }
+        int indiceCWL = -1; //Bandera
 
-        // Si es NUM - OK
-        if (tipoOp1 == TablaSimbolos.tokentype.Numero) {
+        //Verifico cada token de la linea a ver si alguno coincide con CWL
+        for (int i = 0; i < linea.size(); i++) {
+            String token = linea.get(i).toLowerCase();
+            if (token.contains("console.writeline")) {
+                indiceCWL = i;
+                break;
+            }
+        }
+        //Si no encontre CWL en la linea retorno.
+        if (indiceCWL == -1) {
             return;
         }
 
-        //Si es IDENT es variable
-        if (tipoOp1 == TablaSimbolos.tokentype.Identificador) {
+        //Si encontré CWL hago las validaciones necesarias
+        if (indiceCWL != -1) {
 
-            String nombreVar = linea.get(5).toLowerCase();
+            //VALIDACION #1: Parentesis de apertura y cierre ()
+            ValidarParentesisCWL(linea, linenum, indiceCWL);
 
-            // Verificar si la variable está declarada
-            if (!variablesDeclaradas.containsKey(nombreVar)) {
-                String MensajeError = "ERROR 201: La variable no está declarada.";
+            //--Convierto la linea en un string--
+            //Constructor de Strings
+            StringBuilder SB = new StringBuilder();
+            //Recorro a partir del CWL y agrego cada token
+            for (int i = indiceCWL; i < linea.size(); i++) {
+                SB.append(linea.get(i)).append(" "); //Agrego los TK al SB
+            }
+            //Convierto el SB en un String normal
+            String lineaString = SB.toString().trim();
+
+            //VALIDACION #2: Texto entre comillas("")
+            //VALIDACION #3: NO PUEDEN ESTAR VACIOS LOS "( )"
+            ValidarContenidoParentesis(lineaString, linenum);
+        }
+
+    }
+
+    //FUNCIONES APARTE PARA LAS VALIDACIONES #4 DE ()
+    
+    //VALIDACION #4.1: Parentesis de apertura y cierre ()
+    private void ValidarParentesisCWL(List<String> linea, int linenum, int indiceCWL) {
+
+        //Banderas indices de ()
+        int indiceApertura = -1;
+        int indiceCierre = -1;
+
+        //Recorro a partir del CWL para buscar ()
+        for (int i = indiceCWL; i < linea.size(); i++) {
+            String token = linea.get(i);
+
+            //Si encuentro un token con ( guardo el indice
+            if (indiceApertura == -1 && token.contains("(")) {
+                indiceApertura = i;
+            }
+            //Si encuentro un token con ) guardo el indice
+            if (indiceCierre == -1 && token.contains(")")) {
+                indiceCierre = i;
+            }
+
+            // Si encuentro () salgo del ciclo.
+            if (indiceApertura != -1 && indiceCierre != -1) {
+                break;
+            }
+        }
+
+        //REGISTRO ERRORES DE ()
+        if (indiceApertura == -1) {
+            String MensajeError = "ERROR 300: Falta paréntesis de apertura '(' en Console.WriteLine.";
+            System.out.println("Linea " + linenum + MensajeError);
+            try {
+                registrador.EscribirError(linenum, MensajeError);
+            } catch (IOException ex) {
+                System.getLogger(Validador.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
+            }
+        }
+
+        if (indiceCierre == -1) {
+            String MensajeError = "ERROR 300: Falta paréntesis de cierre ')' en Console.WriteLine.";
+            System.out.println("Linea " + linenum + MensajeError);
+            try {
+                registrador.EscribirError(linenum, MensajeError);
+            } catch (IOException ex) {
+                System.getLogger(Validador.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
+            }
+        }
+        //Si los paréntesis no están en el orden correcto, marco error
+        if (indiceApertura != -1 && indiceCierre != -1 && indiceCierre < indiceApertura) {
+            String MensajeError = "ERROR 300: El paréntesis de cierre ')' aparece antes del paréntesis de apertura '(' en Console.WriteLine.";
+            System.out.println("Linea " + linenum + MensajeError);
+            try {
+                registrador.EscribirError(linenum, MensajeError);
+            } catch (IOException ex) {
+                System.getLogger(Validador.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
+            }
+        }
+     }
+
+    //VALIDACION #4.2: Texto entre comillas("")
+    private void ValidarContenidoParentesis(String lineaString, int linenum) {
+
+        //REGISTRO ERRORES DE ()
+        //Busco la posición del 1er "("
+        int ParentesisAbrir = lineaString.indexOf("(");
+
+        //Busco el 1er ")" luego del "("
+        int ParentesisCerrar = lineaString.indexOf(")", ParentesisAbrir + 1);
+
+        //Verifico que se hayan encontrado "( )"
+        if (ParentesisAbrir == -1 || ParentesisCerrar == -1 || ParentesisCerrar < ParentesisAbrir) {
+            return; //Si no hay parentesis o están mal posicionados, retorno.
+        }
+
+        //Si los "( )" están correctos, extraigo el contenido dentro y elimino espacios.
+        String ContenidoParentesis = lineaString.substring(ParentesisAbrir + 1, ParentesisCerrar).trim();
+        
+        //VALIDACION#4.3 NO PUEDEN ESTAR VACIOS LOS "( )"
+        if (ContenidoParentesis.isEmpty()) {
+            String MensajeError = "ERROR 302: El contenido dentro de paréntesis no puede estar vacío.";
+            System.out.println("Linea " + linenum + MensajeError);
+            try {
+                registrador.EscribirError(linenum, MensajeError);
+            } catch (IOException ex) {
+                System.getLogger(Validador.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
+            }
+            return;
+        }
+
+        //Verifico si el contenido inicia con comillas "
+        if (ContenidoParentesis.charAt(0) == '"') {
+
+            //Busco las otras comillas " a partir de la posición 1
+            int ComillaCierre = ContenidoParentesis.indexOf('"', 1);
+
+            //Si no encontré ComillaCierre, muestro error.
+            if (ComillaCierre == -1) {
+                String MensajeError = "ERROR 301: El texto a imprimir debe ir encerrado entre comillas dobles.";
                 System.out.println("Linea " + linenum + MensajeError);
                 try {
                     registrador.EscribirError(linenum, MensajeError);
                 } catch (IOException ex) {
                     System.getLogger(Validador.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
                 }
-                return;
             }
-
-            // Verificar el tipo de la variable (int o byte)
-            String tipoDato = variablesDeclaradas.get(nombreVar);
-            if (!(tipoDato.equals("integer") || tipoDato.equals("byte"))) {
-                String MensajeError = "ERROR 202: La variable debe ser de tipo numérica.";
-                System.out.println("Linea " + linenum + MensajeError);
-                try {
-                    registrador.EscribirError(linenum, MensajeError);
-                } catch (IOException ex) {
-                    System.getLogger(Validador.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
-                }
-            }
-
-            return;
         }
 
-        // Si el operando no es numérico o un identificador, es inválido
-        String MensajeError = "ERROR 203: Operando inválido";
-        System.out.println("Linea " + linenum + MensajeError);
-        try {
-            registrador.EscribirError(linenum, MensajeError);
-        } catch (IOException ex) {
-            System.getLogger(Validador.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
-        }
-    } */
+        
+    }
+
 }
+

@@ -71,6 +71,9 @@ public class AnalizadorLexico {
                 //VALIDACION DE FORMATOS DIM
                 validador.ValidarDeclaracionDim(CompleteLine, CompleteTokensLine, linenum);
                 
+                //VALIDACION DE CONSOLE.WRITELINE
+                validador.ValidarSentenciasCWL(CompleteLine,linenum);
+                                
                 // PASO A LA SIGUIENTE LINEA DEL ARCHIVO
                 linenum++;
             }
