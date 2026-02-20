@@ -467,7 +467,7 @@ public class Validador {
         //Si estaba el IMPORTS antes que MODULE continuo verificando la estructura.
         //#2 Verificar que después de MODULE exista IDENT válido
         //Primero verifico si se encontró module.
-        if (indiceModule != -1) {
+        if (indiceModule == 0) {
 
             //Verifico que después de Module exista otro token
             if (indiceModule + 1 >= tokentypes.size()) {
@@ -533,5 +533,22 @@ public class Validador {
             }
 
         }
+    }
+
+    //VALIDACION #6 END MODULE (ERRORES 500)
+    public void ValidarEndModule(String LastLine, int linenum) {
+
+        //Verifico que la última linea sea END MODULE
+        if (!LastLine.equalsIgnoreCase("End Module")) {
+
+            String MensajeError = "ERROR 500: 'End Module' debe ser la última línea del codigo.";
+            System.out.println("Linea " + linenum + ": " + MensajeError);
+            try {
+                registrador.EscribirError(linenum, MensajeError);
+            } catch (IOException ex) {
+                System.getLogger(Validador.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
+            }
+        }
+
     }
 }

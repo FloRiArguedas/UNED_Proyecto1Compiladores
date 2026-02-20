@@ -21,6 +21,7 @@ public class AnalizadorLexico {
 
         String cadena;
         int linenum = 1;
+        String LastLine = "";
 
         try {
             //Abro el archivo con la ruta proporcionada por el usuario
@@ -34,6 +35,7 @@ public class AnalizadorLexico {
             String FilelogsPath = registrador.CrearArchivoLogs(rutaarchivo);
             //LIMPIO ARCHIVO LOGS
             registrador.Sobreescribir(FilelogsPath);
+            
 
             //INICIAR LECTURA DEL ARCHIVO
             while ((cadena = lector.readLine()) != null) {
@@ -74,10 +76,21 @@ public class AnalizadorLexico {
 
                 //VALIDACION DE CONSOLE.WRITELINE
                 validador.ValidarSentenciasCWL(CompleteLine, linenum);
-
+                
+                //VALIDACION END MODULE
+                //#1. Verifico si la linea no está vacía para ver si es la última
+                if (!cadena.trim().isEmpty()){
+                    LastLine = cadena.trim();
+                }
                 // PASO A LA SIGUIENTE LINEA DEL ARCHIVO
                 linenum++;
             }
+            
+            //VALIDACION END MODULE
+            /*#2. Cuando termina el ciclo, envío a validar la última linea
+                le resto uno al # línea porque finalizó incrementado*/
+            validador.ValidarEndModule(LastLine, linenum -1);
+            
             //Cierro los archivos
             registrador.cerrarLogs();
             lector.close();
