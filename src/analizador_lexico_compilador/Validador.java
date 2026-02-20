@@ -23,6 +23,8 @@ public class Validador {
     private boolean BanderaTD = false;
     private boolean EstaModule = false;
     private boolean EstaImports = false;
+    private boolean EstaEndModule = false;
+    private boolean Error500Detectado = false;
     //Diccionario para guardar variables nombre-tipo
     private final Map<String, String> variablesDeclaradas = new HashMap<>();
 
@@ -450,14 +452,17 @@ public class Validador {
 
             if (token.equals("module")) {
                 indiceModule = i;
-                //Si encuentro Module e Imports no está, ERROR.
-                if (!EstaImports) {
-                    String MensajeError = "ERROR 400: Module debe aparecer después de Imports";
-                    System.out.println("Linea " + linenum + MensajeError);
-                    try {
-                        registrador.EscribirError(linenum, MensajeError);
-                    } catch (IOException ex) {
-                        System.getLogger(Validador.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
+                //Verifico que Module sea la primera palabra de la linea (Por estructura)
+                if (indiceModule == 0) {
+                    //Si encuentro Module e Imports no está, ERROR.
+                    if (!EstaImports) {
+                        String MensajeError = "ERROR 400: Module debe aparecer después de Imports";
+                        System.out.println("Linea " + linenum + MensajeError);
+                        try {
+                            registrador.EscribirError(linenum, MensajeError);
+                        } catch (IOException ex) {
+                            System.getLogger(Validador.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
+                        }
                     }
                 }
                 break;
@@ -504,8 +509,8 @@ public class Validador {
             //Verifico el caracter 6
             if (LineaCompleta.length() > 6) {
                 char PrimerCaracter = LineaCompleta.charAt(6);
-                //Verifico que sea un espacio - Extracto consultado a la IA Promtp #X
-                if (!Character.isWhitespace(PrimerCaracter)) {
+                //Verifico que sea un espacio - Extracto consultado a la IA y modificado Promtp #X
+                if (PrimerCaracter != ' ') {
                     String MensajeError = "ERROR 403: Entre Module e Identificador debe existir únicamente un espacio.";
                     System.out.println("Linea " + linenum + MensajeError);
                     try {
@@ -520,7 +525,7 @@ public class Validador {
             if (LineaCompleta.length() > 7) {
                 char SegundoCaracter = LineaCompleta.charAt(7);
 
-                if (Character.isWhitespace(SegundoCaracter)) {
+                if (SegundoCaracter == ' ') {
                     String MensajeError = "ERROR 403: Entre Module e Identificador debe existir únicamente un espacio.";
                     System.out.println("Linea " + linenum + MensajeError);
                     try {
@@ -536,11 +541,16 @@ public class Validador {
     }
 
     //VALIDACION #6 END MODULE (ERRORES 500)
-    public void ValidarEndModule(String LastLine, int linenum) {
+    public void ValidarEndModule(List<String> linea, String CadenaOriginal, int linenum) {
 
-        //Verifico que la última linea sea END MODULE
-        if (!LastLine.equalsIgnoreCase("End Module")) {
+        //No verifico las líneas vacías
+        if (CadenaOriginal == null || CadenaOriginal.trim().isEmpty()) {
+            return;
+        }
 
+        //#1 END MODULE DEBE SER LA ÚLTIMA LINEA DEL CODIGO
+        //Si ya se había detectado una línea EM y hay más líneas, ERROR.
+        if (EstaEndModule && !Error500Detectado) {
             String MensajeError = "ERROR 500: 'End Module' debe ser la última línea del codigo.";
             System.out.println("Linea " + linenum + ": " + MensajeError);
             try {
@@ -548,7 +558,27 @@ public class Validador {
             } catch (IOException ex) {
                 System.getLogger(Validador.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
             }
+            Error500Detectado = true; //Si detecto al menos 1 vez el error, ya no lo reporto más.
         }
 
+        //Reviso si la linea por la que va el while es END MODULE
+        if (linea != null && linea.size() == 2) {
+            String token0 = linea.get(0).replaceAll("[^A-Za-z]", "").toLowerCase();
+            String token1 = linea.get(1).replaceAll("[^A-Za-z]", "").toLowerCase();
+            if (token0.equals("end") && token1.equals("module")) {
+                EstaEndModule = true;
+            }
+        }
+
+        /*//#2DESPUES DE END MODULE NO DEBE HABER NADA MAS EN LA LINEA
+        if (EstaEndModule && linea.size() > 2) {
+            String MensajeError = "ERROR 501: No debe aparecer nada más en la línea de END MODULE";
+            System.out.println("Linea " + linenum + ": " + MensajeError);
+            try {
+                registrador.EscribirError(linenum, MensajeError);
+            } catch (IOException ex) {
+                System.getLogger(Validador.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
+            }
+        }*/
     }
 }
