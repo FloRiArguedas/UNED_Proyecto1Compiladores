@@ -559,26 +559,31 @@ public class Validador {
                 System.getLogger(Validador.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
             }
             Error500Detectado = true; //Si detecto al menos 1 vez el error, ya no lo reporto más.
+            return;
         }
 
-        //Reviso si la linea por la que va el while es END MODULE
-        if (linea != null && linea.size() == 2) {
+        //Verifico si la línea es END MODULE
+        if (linea != null && linea.size() >= 2) {
+
             String token0 = linea.get(0).replaceAll("[^A-Za-z]", "").toLowerCase();
             String token1 = linea.get(1).replaceAll("[^A-Za-z]", "").toLowerCase();
+
             if (token0.equals("end") && token1.equals("module")) {
+
+                //#2DESPUES DE END MODULE NO DEBE HABER NADA MAS EN LA LINEA
+                if (linea.size() > 2) {
+                    String MensajeError = "ERROR 501: No debe aparecer nada más en la línea de END MODULE";
+                    System.out.println("Linea " + linenum + ": " + MensajeError);
+                    try {
+                        registrador.EscribirError(linenum, MensajeError);
+                    } catch (IOException ex) {
+                        System.getLogger(Validador.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
+                    }
+                    return;
+                }
                 EstaEndModule = true;
+                return;
             }
         }
-
-        /*//#2DESPUES DE END MODULE NO DEBE HABER NADA MAS EN LA LINEA
-        if (EstaEndModule && linea.size() > 2) {
-            String MensajeError = "ERROR 501: No debe aparecer nada más en la línea de END MODULE";
-            System.out.println("Linea " + linenum + ": " + MensajeError);
-            try {
-                registrador.EscribirError(linenum, MensajeError);
-            } catch (IOException ex) {
-                System.getLogger(Validador.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
-            }
-        }*/
     }
 }
