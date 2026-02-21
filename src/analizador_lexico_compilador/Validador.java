@@ -548,7 +548,7 @@ public class Validador {
             return;
         }
 
-        //#1 END MODULE DEBE SER LA ÚLTIMA LINEA DEL CODIGO
+        //VALIDACION #1 END MODULE DEBE SER LA ÚLTIMA LINEA DEL CODIGO
         //Si ya se había detectado una línea EM y hay más líneas, ERROR.
         if (EstaEndModule && !Error500Detectado) {
             String MensajeError = "ERROR 500: 'End Module' debe ser la última línea del codigo.";
@@ -570,7 +570,7 @@ public class Validador {
 
             if (token0.equals("end") && token1.equals("module")) {
 
-                //#2DESPUES DE END MODULE NO DEBE HABER NADA MAS EN LA LINEA
+                //VALIDACION #2 DESPUES DE END MODULE NO DEBE HABER NADA MAS EN LA LINEA
                 if (linea.size() > 2) {
                     String MensajeError = "ERROR 501: No debe aparecer nada más en la línea de END MODULE";
                     System.out.println("Linea " + linenum + ": " + MensajeError);
@@ -580,6 +580,39 @@ public class Validador {
                         System.getLogger(Validador.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
                     }
                     return;
+                }
+
+                //VALIDACION #3 ENTRE END y MODULE SOLO DEBE HABER UN ESPACIO
+                //Quito los espacios iniciales de la Linea Original
+                String LineaCompleta = CadenaOriginal.trim();
+                
+                //Guardo los dos siguientes caracteres despues de End
+                //Verifico el caracter 3
+                if (LineaCompleta.length() > 4) {
+                    char PrimerCaracter = LineaCompleta.charAt(3);
+                    char SegundoCaracter = LineaCompleta.charAt(4);
+                    //Verifico que luego de END exista un espacio
+                    if (PrimerCaracter != ' ') {
+                        String MensajeError = "ERROR 502: Entre End y Module debe existir únicamente un espacio.";
+                        System.out.println("Linea " + linenum + MensajeError);
+                        try {
+                            registrador.EscribirError(linenum, MensajeError);
+                        } catch (IOException ex) {
+                            System.getLogger(Validador.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
+                        }
+                        return;
+                    }
+                    //Si el siguiente caracter también es espacio. ERROR
+                    if (SegundoCaracter == ' ') {
+                        String MensajeError = "ERROR 502: Entre End y Module debe existir únicamente un espacio.";
+                        System.out.println("Linea " + linenum + MensajeError);
+                        try {
+                            registrador.EscribirError(linenum, MensajeError);
+                        } catch (IOException ex) {
+                            System.getLogger(Validador.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
+                        }
+                        return;
+                    }
                 }
                 EstaEndModule = true;
                 return;
