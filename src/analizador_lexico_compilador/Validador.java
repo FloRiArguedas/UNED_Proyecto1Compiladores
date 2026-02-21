@@ -140,7 +140,7 @@ public class Validador {
                 }
                 return;
             }
-            //Si la linea si cumple el formato mínimo, continuo con la evaluación
+            //Si la linea si cumple el formato(tamaño) mínimo, continuo con la evaluación
 
             //Llamo a la Funcion Validar para ver que tipo de expresion es
             TablaExpresiones.expresiones TipoExpresion = TablaExpresiones.validar(tokentypes);
@@ -157,14 +157,18 @@ public class Validador {
             }
 
             //VALIDACIONES ADICIONALES PARA FORMATO 3
-            //Guardo la variable y su tipo en el diccionario (Dim X As Tipo)
-            String NombreVariable = linea.get(1); //X
-            String tipoDato = linea.get(3); //Tipo
-            //las ingreso al diccionario
-            variablesDeclaradas.put(
-                    NombreVariable.toLowerCase(),
-                    tipoDato.toLowerCase()
-            );
+            
+            //Verifico que la declaración de la variable sea correcta
+            if (tokentypes.get(1) == TablaSimbolos.tokentype.Identificador && tokentypes.get(3) == TablaSimbolos.tokentype.Tipo_dato) {
+                //Guardo la variable y su tipo en el diccionario (Dim X As Tipo)
+                String NombreVariable = linea.get(1); //X
+                String tipoDato = linea.get(3); //Tipo
+                //las ingreso al diccionario
+                variablesDeclaradas.put(
+                        NombreVariable.toLowerCase(),
+                        tipoDato.toLowerCase()
+                );
+            }
 
             //SI LA EXPRESION ES FORMATO3 - VERIFICO OPERANDOS NUMERICOS
             if (TipoExpresion == TablaExpresiones.expresiones.DIM_F3_II
