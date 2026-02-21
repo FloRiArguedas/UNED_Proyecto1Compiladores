@@ -186,7 +186,7 @@ public class Validador {
             }
 
             //Si la linea coincide con una expresion lo imprimo. ****TEMPORAL****
-            System.out.println("Linea " + linenum + ": Dim válido, la expresión es de tipo: = " + TipoExpresion);
+            System.out.println("Linea " + linenum + ": Formato de Dim válido, la expresión es de tipo: = " + TipoExpresion);
         }
     }
 
@@ -585,7 +585,7 @@ public class Validador {
                 //VALIDACION #3 ENTRE END y MODULE SOLO DEBE HABER UN ESPACIO
                 //Quito los espacios iniciales de la Linea Original
                 String LineaCompleta = CadenaOriginal.trim();
-                
+
                 //Guardo los dos siguientes caracteres despues de End
                 //Verifico el caracter 3
                 if (LineaCompleta.length() > 4) {
@@ -618,5 +618,30 @@ public class Validador {
                 return;
             }
         }
+    }
+
+    //VALIDACION #7 COMENTARIOS (ERRORES 600)
+    public boolean ValidarComentarios(String CadenaOriginal, int linenum) {
+
+        //Normalizo la linea para quitarle los espacios de adelante
+        String LineaOriginal = CadenaOriginal.trim();
+
+        //Verifico si la linea inicia con apóstrofe
+        if (LineaOriginal.startsWith("'")) {
+            return true; //Comentario Válido
+        }
+
+        //Verifico que la línea no tenga apóstrofe en otra posición
+        if (!LineaOriginal.startsWith("'") && LineaOriginal.contains("'")) {
+            String MensajeError = "ERROR 600: Comentario Inválido. La línea debe iniciar con 'apóstrofe.";
+            System.out.println("Linea " + linenum + ": " + MensajeError);
+            try {
+                registrador.EscribirError(linenum, MensajeError);
+            } catch (IOException ex) {
+                System.getLogger(Validador.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
+            }
+            return false; //Esta linea tiene un comentario inválido
+        }
+        return false; //Esta linea no es un comentario 
     }
 }

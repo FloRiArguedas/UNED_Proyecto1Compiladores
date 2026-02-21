@@ -36,7 +36,6 @@ public class AnalizadorLexico {
             String FilelogsPath = registrador.CrearArchivoLogs(rutaarchivo);
             //LIMPIO ARCHIVO LOGS
             registrador.Sobreescribir(FilelogsPath);
-            
 
             //INICIAR LECTURA DEL ARCHIVO
             while ((cadena = lector.readLine()) != null) {
@@ -46,45 +45,50 @@ public class AnalizadorLexico {
                 //ESCRIBIR EN ARCHIVO LOGS
                 registrador.EscribirLinea(linenum, cadena);
 
-                //TOKENIZAR LINEAS LEIDAS
-                StringTokenizer tokenizer = new StringTokenizer(cadena);
+                //VERIFICO QUE LA LINEA NO SEA UN COMENTARIO, PARA PODER VALIDARLA.
+                if (!validador.ValidarComentarios(cadena, linenum)) {
 
-                //Creo lista para guardar tokens de la linea
-                List<TablaSimbolos.tokentype> CompleteTokensLine = new ArrayList<>();
-                //Creo lista para guardar la linea
-                List<String> CompleteLine = new ArrayList<>();
+                    //TOKENIZAR LINEAS LEIDAS
+                    StringTokenizer tokenizer = new StringTokenizer(cadena);
 
-                //CLASIFICACION DE TOKENS
-                while (tokenizer.hasMoreTokens()) {
-                    String palabra = tokenizer.nextToken();
+                    //Creo lista para guardar tokens de la linea
+                    List<TablaSimbolos.tokentype> CompleteTokensLine = new ArrayList<>();
+                    //Creo lista para guardar la linea
+                    List<String> CompleteLine = new ArrayList<>();
 
-                    TablaSimbolos.tokentype type = tablasimbolos.Clasificar(palabra);
+                    //CLASIFICACION DE TOKENS
+                    while (tokenizer.hasMoreTokens()) {
+                        String palabra = tokenizer.nextToken();
 
-                    //Añado cada tipo de token a la lista de la linea
-                    CompleteTokensLine.add(type);
-                    //Añado cada palabra a la lista de la linea
-                    CompleteLine.add(palabra);
+                        TablaSimbolos.tokentype type = tablasimbolos.Clasificar(palabra);
 
-                    //VALIDACION DE PALABRAS RESERVADAS
-                    validador.ValidarReservadas(palabra, type, linenum);
+                        //Añado cada tipo de token a la lista de la linea
+                        CompleteTokensLine.add(type);
+                        //Añado cada palabra a la lista de la linea
+                        CompleteLine.add(palabra);
 
+                        //VALIDACION DE PALABRAS RESERVADAS
+                        validador.ValidarReservadas(palabra, type, linenum);
+
+                    }
+
+                    //VALIDACION DE ESTRUCTURA DE MODULE
+                    validador.ValidarEstructuraModule(CompleteLine, CompleteTokensLine, linenum, cadena);
+
+                    //VALIDACION DE FORMATOS DIM
+                    validador.ValidarDeclaracionDim(CompleteLine, CompleteTokensLine, linenum);
+
+                    //VALIDACION DE CONSOLE.WRITELINE
+                    validador.ValidarSentenciasCWL(CompleteLine, linenum);
+
+                    //VALIDACION END MODULE
+                    validador.ValidarEndModule(CompleteLine, cadena, linenum);
                 }
-                //VALIDACION DE ESTRUCTURA DE MODULE
-                validador.ValidarEstructuraModule(CompleteLine, CompleteTokensLine, linenum, cadena);
-
-                //VALIDACION DE FORMATOS DIM
-                validador.ValidarDeclaracionDim(CompleteLine, CompleteTokensLine, linenum);
-
-                //VALIDACION DE CONSOLE.WRITELINE
-                validador.ValidarSentenciasCWL(CompleteLine, linenum);
-                
-                //VALIDACION END MODULE
-                validador.ValidarEndModule(CompleteLine, cadena, linenum);
 
                 // PASO A LA SIGUIENTE LINEA DEL ARCHIVO
                 linenum++;
-            }      
-        
+            }
+
             //Cierro los archivos
             registrador.cerrarLogs();
             lector.close();
