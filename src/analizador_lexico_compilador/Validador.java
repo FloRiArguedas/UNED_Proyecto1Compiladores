@@ -314,7 +314,6 @@ public class Validador {
     }
 
     //FUNCIONES APARTE PARA LAS VALIDACIONES #4 DE ()
-    
     //VALIDACION #4.1: Parentesis de apertura y cierre ()
     private void ValidarParentesisCWL(List<String> linea, int linenum, int indiceCWL) {
 
@@ -390,9 +389,8 @@ public class Validador {
 
         }
     }
-    
-//VALIDACION #4.2: Texto entre comillas("")
 
+    //VALIDACION #4.2: Texto entre comillas("")
     private void ValidarContenidoParentesis(String lineaString, int linenum) {
 
         //REGISTRO ERRORES DE ()
@@ -460,13 +458,20 @@ public class Validador {
             String token = linea.get(i).replaceAll("[^A-Za-z]", "").toLowerCase();
 
             if (token.equals("imports")) {
+                //Verifico que no exista un module líneas antes.
+                if (EstaModule) {
+                    String MensajeError = "ERROR 401: No deben existir Imports, despues de Module";
+                    try {
+                        registrador.EscribirError(linenum, MensajeError);
+                    } catch (IOException ex) {
+                        System.getLogger(Validador.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
+                    }
+                }
                 indiceImports = i;
+                EstaImports = true; //Si encuentro el token imports activo la bandera
                 break;
             }
-        } //Si encuentro el token imports activo la bandera
-        if (indiceImports != -1) {
-            EstaImports = true;
-        }
+        } 
 
         //#1 Verificar que MODULE esté después de IMPORTS
         int indiceModule = -1;
@@ -476,11 +481,12 @@ public class Validador {
 
             if (token.equals("module")) {
                 indiceModule = i;
+                EstaModule = true; //Module Encontrado
                 //Verifico que Module sea la primera palabra de la linea (Por estructura)
                 if (indiceModule == 0) {
                     //Si encuentro Module e Imports no está, ERROR.
                     if (!EstaImports) {
-                        String MensajeError = "ERROR 400: Module debe aparecer después de Imports";
+                        String MensajeError = "ERROR 400: Module debe aparecer despues de Imports";
                         //System.out.println("Linea " + linenum + MensajeError);
                         try {
                             registrador.EscribirError(linenum, MensajeError);
@@ -490,7 +496,7 @@ public class Validador {
                     }
                 }
                 break;
-            }
+            } 
         }
 
         //Si estaba el IMPORTS antes que MODULE continuo verificando la estructura.
@@ -500,7 +506,7 @@ public class Validador {
 
             //Verifico que después de Module exista otro token
             if (indiceModule + 1 >= tokentypes.size()) {
-                String MensajeError = "ERROR 401: Falta un identificador después de Module";
+                String MensajeError = "ERROR 402: Falta un identificador despues de Module";
                 //System.out.println("Linea " + linenum + MensajeError);
                 try {
                     registrador.EscribirError(linenum, MensajeError);
@@ -511,7 +517,7 @@ public class Validador {
             }
             //Verifico que el token después de Module sea un IDENT
             if (tokentypes.get(indiceModule + 1) != TablaSimbolos.tokentype.Identificador) {
-                String MensajeError = "ERROR 402: Identificador Inválido después de Module";
+                String MensajeError = "ERROR 403: Identificador Inválido despues de Module";
                 //System.out.println("Linea " + linenum + MensajeError);
                 try {
                     registrador.EscribirError(linenum, MensajeError);
@@ -530,12 +536,12 @@ public class Validador {
             String LineaCompleta = CadenaOriginal.trim();
 
             //Guardo los dos siguientes caracteres despues de Module
-            //Verifico el caracter 6
+            //Verifico el caracter 6 - Debe ser un espacio
             if (LineaCompleta.length() > 6) {
                 char PrimerCaracter = LineaCompleta.charAt(6);
                 //Verifico que sea un espacio - Extracto consultado a la IA y modificado Promtp #6
                 if (PrimerCaracter != ' ') {
-                    String MensajeError = "ERROR 403: Entre Module e Identificador debe existir únicamente un espacio.";
+                    String MensajeError = "ERROR 404: Entre Module e Identificador debe existir unicamente un espacio.";
                     //System.out.println("Linea " + linenum + MensajeError);
                     try {
                         registrador.EscribirError(linenum, MensajeError);
@@ -545,12 +551,12 @@ public class Validador {
                     return;
                 }
             }
-            //Verifico el caracter 7
+            //Verifico el caracter 7 - No debe haber más de un espacio.
             if (LineaCompleta.length() > 7) {
                 char SegundoCaracter = LineaCompleta.charAt(7);
 
                 if (SegundoCaracter == ' ') {
-                    String MensajeError = "ERROR 403: Entre Module e Identificador debe existir únicamente un espacio.";
+                    String MensajeError = "ERROR 404: Entre Module e Identificador debe existir unicamente un espacio.";
                     //System.out.println("Linea " + linenum + MensajeError);
                     try {
                         registrador.EscribirError(linenum, MensajeError);
