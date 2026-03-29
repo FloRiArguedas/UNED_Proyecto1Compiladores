@@ -8,7 +8,7 @@ public class Compilador {
 
     public static void main(String[] args) {
 
-        //**FASE 1 - LECTURA DEL ARCHIVO**
+        //LECTURA DEL ARCHIVO**
         //Validar que el argumento no esté vacio
         if (args.length == 0) {
             System.out.println("Debe brindar la ruta del archivo");
@@ -22,6 +22,8 @@ public class Compilador {
         //Análisis del archivo
         AnalizadorLexico analizador = new AnalizadorLexico();
         analizador.analizar_archivo(PathFile);
-        //**FIN FASE 1**
+        
+        System.out.println("Analizador Ejecutado con éxito");
+        //**FIN DEL PROCESO**
     }
 }

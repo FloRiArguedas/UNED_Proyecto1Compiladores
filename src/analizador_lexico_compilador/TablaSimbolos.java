@@ -65,7 +65,6 @@ public class TablaSimbolos {
            return tokentype.Asignacion;
        }
        
-       //TEMPORAL ***
        return null;
     
     }

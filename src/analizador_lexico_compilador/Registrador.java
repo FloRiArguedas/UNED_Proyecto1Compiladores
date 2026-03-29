@@ -27,18 +27,18 @@ public class Registrador {
             String FileLogsName = ShortName + "-errores.log";
             String FileLogsPath;
             if (FolderFile != null) {
-                FileLogsPath = FolderFile + File.separator + FileLogsName;
+                FileLogsPath = FolderFile + File.separator + FileLogsName; //Separador de carpetas del sistema operativo
             } else {
                 FileLogsPath = FileLogsName;
-                /*En la carpeta actual del .jar*/
+                /*Se guarda en la carpeta donde se ejecuta el programa*/
             }
 
             File LogsFile = new File(FileLogsPath);
 
             if (LogsFile.createNewFile()) {
-                System.out.println("Se creo correctamente el archivo de logs");
+               // System.out.println("Se creo correctamente el archivo de logs");
             } else {
-                System.out.println("El archivo de logs, ya existe.");
+                //System.out.println("El archivo de logs, ya existe.");
             }
 
             return FileLogsPath;

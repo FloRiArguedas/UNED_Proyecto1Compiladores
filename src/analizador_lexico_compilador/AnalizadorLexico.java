@@ -40,7 +40,7 @@ public class AnalizadorLexico {
             //INICIAR LECTURA DEL ARCHIVO
             while ((cadena = lector.readLine()) != null) {
                 //TEMPORAL PARA MOSTRAR EN CONSOLA LAS LINEAS
-                System.out.println("Linea " + linenum + ": " + cadena);
+                //System.out.println("Linea " + linenum + ": " + cadena);
 
                 //ESCRIBIR EN ARCHIVO LOGS
                 registrador.EscribirLinea(linenum, cadena);
@@ -97,7 +97,11 @@ public class AnalizadorLexico {
             System.out.println("Error: " + e.getMessage());
         }
     }
+}
 
+
+//Esta función solo se uso para pruebas.
+    /*
     public void MostrarTypeConsola(TablaSimbolos.tokentype type, int linenum, String palabra) {
 
         //MOSTRAR EL CONSOLA EL TIPO DE TOKEN
@@ -135,5 +139,4 @@ public class AnalizadorLexico {
             System.out.println("Linea " + linenum + ": " + palabra + " no esta detectada");
         }
 
-    }
-}
+    }*/
