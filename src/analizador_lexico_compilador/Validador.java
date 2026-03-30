@@ -468,13 +468,14 @@ public class Validador {
                     }
                 }
                 indiceImports = i;
-                EstaImports = true; //Si encuentro el token imports activo la bandera
+                EstaImports = true; //Si encuentro el token imports, activo la bandera
                 break;
             }
-        } 
+        }
 
-        //#1 Verificar que MODULE esté después de IMPORTS
+        //#1 **Verificar que MODULE esté después de IMPORTS**
         int indiceModule = -1;
+        //Recorro la línea para ver si está Module
         for (int i = 0; i < linea.size(); i++) {
             // Normalizo el token por si trae caracteres adicionales
             String token = linea.get(i).replaceAll("[^A-Za-z]", "").toLowerCase();
@@ -482,8 +483,10 @@ public class Validador {
             if (token.equals("module")) {
                 indiceModule = i;
                 EstaModule = true; //Module Encontrado
+
                 //Verifico que Module sea la primera palabra de la linea (Por estructura)
                 if (indiceModule == 0) {
+
                     //Si encuentro Module e Imports no está, ERROR.
                     if (!EstaImports) {
                         String MensajeError = "ERROR 400: Module debe aparecer despues de Imports";
@@ -494,76 +497,65 @@ public class Validador {
                             System.getLogger(Validador.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
                         }
                     }
-                }
-                break;
-            } 
-        }
-
-        //Si estaba el IMPORTS antes que MODULE continuo verificando la estructura.
-        //#2 Verificar que después de MODULE exista IDENT válido
-        //Primero verifico si se encontró module.
-        if (indiceModule == 0) {
-
-            //Verifico que después de Module exista otro token
-            if (indiceModule + 1 >= tokentypes.size()) {
-                String MensajeError = "ERROR 402: Falta un identificador despues de Module";
-                //System.out.println("Linea " + linenum + MensajeError);
-                try {
-                    registrador.EscribirError(linenum, MensajeError);
-                } catch (IOException ex) {
-                    System.getLogger(Validador.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
-                }
-                return;
-            }
-            //Verifico que el token después de Module sea un IDENT
-            if (tokentypes.get(indiceModule + 1) != TablaSimbolos.tokentype.Identificador) {
-                String MensajeError = "ERROR 403: Identificador Inválido despues de Module";
-                //System.out.println("Linea " + linenum + MensajeError);
-                try {
-                    registrador.EscribirError(linenum, MensajeError);
-                } catch (IOException ex) {
-                    System.getLogger(Validador.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
-                }
-                return;
-            }
-        }
-
-        //#3 Verificar que solo exista un espacio entre Modulo e Identificador
-        //Verifico si se encontró Module
-        if (indiceModule == 0) {
-
-            //Quito los espacios iniciales de la Linea Original
-            String LineaCompleta = CadenaOriginal.trim();
-
-            //Guardo los dos siguientes caracteres despues de Module
-            //Verifico el caracter 6 - Debe ser un espacio
-            if (LineaCompleta.length() > 6) {
-                char PrimerCaracter = LineaCompleta.charAt(6);
-                //Verifico que sea un espacio - Extracto consultado a la IA y modificado Promtp #6
-                if (PrimerCaracter != ' ') {
-                    String MensajeError = "ERROR 404: Entre Module e Identificador debe existir unicamente un espacio.";
-                    //System.out.println("Linea " + linenum + MensajeError);
-                    try {
-                        registrador.EscribirError(linenum, MensajeError);
-                    } catch (IOException ex) {
-                        System.getLogger(Validador.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
+                    //#2 **Verificar que después de MODULE exista IDENT válido**
+                    //Verifico que después de Module exista otro token
+                    if (indiceModule + 1 >= tokentypes.size()) {
+                        String MensajeError = "ERROR 402: Falta un identificador despues de Module";
+                        //System.out.println("Linea " + linenum + MensajeError);
+                        try {
+                            registrador.EscribirError(linenum, MensajeError);
+                        } catch (IOException ex) {
+                            System.getLogger(Validador.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
+                        }
+                        return;
                     }
-                    return;
-                }
-            }
-            //Verifico el caracter 7 - No debe haber más de un espacio.
-            if (LineaCompleta.length() > 7) {
-                char SegundoCaracter = LineaCompleta.charAt(7);
-
-                if (SegundoCaracter == ' ') {
-                    String MensajeError = "ERROR 404: Entre Module e Identificador debe existir unicamente un espacio.";
-                    //System.out.println("Linea " + linenum + MensajeError);
-                    try {
-                        registrador.EscribirError(linenum, MensajeError);
-                    } catch (IOException ex) {
-                        System.getLogger(Validador.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
+                    //Verifico que el token después de Module sea un IDENT
+                    if (tokentypes.get(indiceModule + 1) != TablaSimbolos.tokentype.Identificador) {
+                        String MensajeError = "ERROR 403: Identificador Inválido despues de Module";
+                        //System.out.println("Linea " + linenum + MensajeError);
+                        try {
+                            registrador.EscribirError(linenum, MensajeError);
+                        } catch (IOException ex) {
+                            System.getLogger(Validador.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
+                        }
+                        return;
                     }
-                    return;
+                    //#3 **Verificar que solo exista un espacio entre Modulo e Identificador**
+                    //Quito los espacios iniciales de la Linea Original
+                    String LineaCompleta = CadenaOriginal.trim();
+
+                    //Guardo los dos siguientes caracteres despues de Module
+                    //Verifico el caracter 6 - Debe ser un espacio
+                    if (LineaCompleta.length() > 6) {
+                        char PrimerCaracter = LineaCompleta.charAt(6);
+                        //Verifico que sea un espacio - Extracto consultado a la IA y modificado Promtp #6
+                        if (PrimerCaracter != ' ') {
+                            String MensajeError = "ERROR 404: Entre Module e Identificador debe existir unicamente un espacio.";
+                            //System.out.println("Linea " + linenum + MensajeError);
+                            try {
+                                registrador.EscribirError(linenum, MensajeError);
+                            } catch (IOException ex) {
+                                System.getLogger(Validador.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
+                            }
+                            return;
+                        }
+                    }
+                    //Verifico el caracter 7 - No debe haber más de un espacio.
+                    if (LineaCompleta.length() > 7) {
+                        char SegundoCaracter = LineaCompleta.charAt(7);
+
+                        if (SegundoCaracter == ' ') {
+                            String MensajeError = "ERROR 404: Entre Module e Identificador debe existir unicamente un espacio.";
+                            //System.out.println("Linea " + linenum + MensajeError);
+                            try {
+                                registrador.EscribirError(linenum, MensajeError);
+                            } catch (IOException ex) {
+                                System.getLogger(Validador.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
+                            }
+                            return;
+                        }
+                    }
+                    break;
                 }
             }
 
