@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Stack;
 
 /**
  *
@@ -25,6 +26,8 @@ public class Validador {
     private boolean EstaImports = false;
     private boolean EstaEndModule = false;
     private boolean Error500Detectado = false;
+    Stack<Integer> PilaWhile = new Stack<>();
+    private boolean ContenidoWhileValido = false;
     //Diccionario para guardar variables nombre-tipo
     private final Map<String, String> variablesDeclaradas = new HashMap<>();
 
@@ -102,7 +105,7 @@ public class Validador {
             return;
         }
 
-        //Valido si existe Module
+        /*//Valido si existe Module
         int indiceModule = -1;
         for (int i = 0; i < linea.size(); i++) {
             // Normalizo el token por si trae caracteres adicionales
@@ -115,8 +118,7 @@ public class Validador {
         } //Si encuentro el token module activo la bandera
         if (indiceModule != -1) {
             EstaModule = true;
-        }
-
+        }*/
         //Verifico si la linea comienza con la palabra dim
         if (linea.get(0).equalsIgnoreCase("dim")) {
             //Verifico que dim aparezca luego de module
@@ -191,7 +193,7 @@ public class Validador {
         }
     }
 
-    //VALIDACION #3.1 FUNCIONES PARA VERIFICAR LOS OPERANDOS DEL FORMATO DE VARIABLES F3 
+    //--VALIDACION #3.1 FUNCIONES PARA VERIFICAR LOS OPERANDOS DEL FORMATO DE VARIABLES F3 
     //Funcion para encontrar la posición de la asignacion "="
     private int obtenerIndiceAsignacion(List<TablaSimbolos.tokentype> tokentypes) {
 
@@ -204,7 +206,7 @@ public class Validador {
         return -1; // si no existe retorno -1
     }
 
-    //Validación de los operandos 
+    //--Validación de los operandos 
     private void ValidarOperando(List<String> linea, List<TablaSimbolos.tokentype> tokentypes, int linenum, int indiceOperando) {
 
         //Verifico que existan los dos operandos después del =
@@ -314,7 +316,7 @@ public class Validador {
     }
 
     //FUNCIONES APARTE PARA LAS VALIDACIONES #4 DE ()
-    //VALIDACION #4.1: Parentesis de apertura y cierre ()
+    //--VALIDACION #4.1: Parentesis de apertura y cierre ()
     private void ValidarParentesisCWL(List<String> linea, int linenum, int indiceCWL) {
 
         //Banderas indices de ()
@@ -390,7 +392,7 @@ public class Validador {
         }
     }
 
-    //VALIDACION #4.2: Texto entre comillas("")
+    //--VALIDACION #4.2: Texto entre comillas("")
     private void ValidarContenidoParentesis(String lineaString, int linenum) {
 
         //REGISTRO ERRORES DE ()
@@ -665,5 +667,144 @@ public class Validador {
             return false; //Esta linea tiene un comentario inválido
         }
         return false; //Esta linea no es un comentario 
+    }
+
+    //VALIDACION #8 COMANDO WHILE (ERRORES 700)
+    public void ValidarBucleWhile(List<String> linea, List<TablaSimbolos.tokentype> tokentypes, int linenum) {
+
+        //Valido si la linea esta vacia
+        if (linea == null || linea.isEmpty()) {
+            return;
+        }
+
+        //BUSCO SI ESTA WHILE
+        //Normalizo el token por si trae caracteres adicionales
+        String token = linea.get(0).replaceAll("[^A-Za-z]", "").toLowerCase();
+
+        if (token.equals("while")) {
+            PilaWhile.push(linenum); //Ingreso este While a la Pila.
+            ContenidoWhileValido = false; //Bandera para revisar contenido
+
+            //VERIFICO LA SINTAXIS DE LA CONDICION WHILE
+            //Llamo a la función para verificar si coincide con alguna de las condiciones While.
+            TablaExpresiones.expresiones tipoExpresion = TablaExpresiones.ValidarCondicionWhile(tokentypes);
+            //Si no coincide, muestro error SINTACTICO
+            if (tipoExpresion == null) {
+                String MensajeError = "ERROR 700: Condicion WHILE, con sintaxis incorrecta.";
+                //System.out.println("Linea " + linenum + ": " + MensajeError);
+                try {
+                    registrador.EscribirError(linenum, MensajeError);
+                } catch (IOException ex) {
+                    System.getLogger(Validador.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
+                }
+            } else { //Si cumple el formato, valido...
+
+                //Verifico que la variable de la condición esté declarada.
+                String VariableCondicion = linea.get(1).toLowerCase();
+                if (!variablesDeclaradas.containsKey(VariableCondicion)) {
+                    String MensajeError = "ERROR 701: La variable de la condición While, debe estar declarada.";
+                    //System.out.println("Linea " + linenum + ": " + MensajeError);
+                    try {
+                        registrador.EscribirError(linenum, MensajeError);
+                    } catch (IOException ex) {
+                        System.getLogger(Validador.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
+                    }
+                }
+                //Verifico que la variable de la condición sea integer
+                String TipoVariable = variablesDeclaradas.get(VariableCondicion);
+                if (TipoVariable != null && !TipoVariable.equals("integer")) {
+                    String MensajeError = "ERROR 702: La variable de la condición While, debe ser de tipo INTEGER";
+                    //System.out.println("Linea " + linenum + ": " + MensajeError);
+                    try {
+                        registrador.EscribirError(linenum, MensajeError);
+                    } catch (IOException ex) {
+                        System.getLogger(Validador.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
+                    }
+                }
+
+                //Verifico que después de la variable haya un número entero.
+                //Regex (Consultado a la IA) Prompt #7
+                if (linea.size() > 3) {
+                    String Numero = linea.get(3);
+                    if (!Numero.matches("^-?\\d+$")) {
+                        String MensajeError = "ERROR 703: El Número de la condición While, debe ser un entero.";
+                        //System.out.println("Linea " + linenum + ": " + MensajeError);
+                        try {
+                            registrador.EscribirError(linenum, MensajeError);
+                        } catch (IOException ex) {
+                            System.getLogger(Validador.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
+                        }
+                    }
+                }
+            }
+            return; //Si es While, salgo de la función para evaluar la siguiente línea
+        }
+
+        if (!PilaWhile.isEmpty()) {
+            //VALIDO CONTENIDO dentro del ciclo (No vacio, no comentario)
+            String PrimerToken = linea.get(0);
+            if (!PrimerToken.startsWith("'") && !token.equals("end")) {
+                ContenidoWhileValido = true;
+            }
+        }
+
+        //BUSCO SI ESTA END WHILE
+        if (token.equals("end")) {
+
+            //Verifico que este el WHILE de cierre (END WHILE)
+            if (linea.size() > 1) {
+                String token1 = linea.get(1).replaceAll("[^A-Za-z]", "").toLowerCase();
+
+                //Si es WHILE de cierre, hago las validaciones de errores.
+                if (token1.equals("while")) {
+
+                    //Si no hay While de inicio, ERROR:
+                    if (PilaWhile.isEmpty()) { //Pila Vacía.
+                        String MensajeError = "ERROR 704: Debe existir un WHILE, antes del END WHILE";
+                        //System.out.println("Linea " + linenum + ": " + MensajeError);
+                        try {
+                            registrador.EscribirError(linenum, MensajeError);
+                        } catch (IOException ex) {
+                            System.getLogger(Validador.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
+                        }
+                        return; //Salgo de la función, para no evaluar más si no está el While de inicio.
+                    } else {
+
+                        int lineaWhile = PilaWhile.pop();// Este EW cierra el While pendiente en la pila.
+
+                        //SI HAY WHILE y END WHILE, valido contenido.
+                        //Si el contenido del bucle es inválido. ERROR
+                        if (!ContenidoWhileValido) {
+                            String MensajeError = "ERROR 705: El bloque WHILE debe tener codigo a ejecutar.";
+                            //System.out.println("Linea " + lineaInicioWhile + ": " + MensajeError);
+                            try {
+                                registrador.EscribirError(lineaWhile, MensajeError);
+                            } catch (IOException ex) {
+                                System.getLogger(Validador.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
+                            }
+                        }
+                    }
+                    //Limpio el contenido del ciclo.
+                    ContenidoWhileValido = false;
+                }
+            }
+        }
+    }
+
+    //-- VALIDAR QUE SE CIERRE EL BUCLE WHILE
+    public void ExisteCierreWhile() {
+
+        while (!PilaWhile.isEmpty()) { //Si no se vació la pila, muestro error.
+            int lineaWhile = PilaWhile.pop(); //Guardo cuál linea de While es.
+
+            String MensajeError = "ERROR 706: El bloque WHILE en la línea: " + lineaWhile + " debe cerrar con END WHILE.";
+            //System.out.println("Linea " + linenum + ": " + MensajeError);
+            try {
+                registrador.EscribirError(lineaWhile, MensajeError);
+            } catch (IOException ex) {
+                System.getLogger(Validador.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
+            }
+
+        }
     }
 }

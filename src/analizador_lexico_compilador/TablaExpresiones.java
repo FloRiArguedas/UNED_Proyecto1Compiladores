@@ -78,7 +78,21 @@ public class TablaExpresiones {
             tokentype.Numero,
             tokentype.OperadorAritmetico,
             tokentype.Numero
-        });
+        }),
+        //ESTRUCTURAS CONDICION WHILE - ANÁLISIS SINTÁCTICO
+
+        // While variable operador integer
+        WHILE_CONDICION(new tokentype[]{
+            tokentype.Reservada,
+            tokentype.Identificador,
+            tokentype.Operador,
+            tokentype.Numero,}),
+        // While variable igual integer
+        WHILE_CONDICION_T2(new tokentype[]{
+            tokentype.Reservada,
+            tokentype.Identificador,
+            tokentype.Asignacion,
+            tokentype.Numero,});
 
         public final tokentype[] exp;
 
@@ -104,7 +118,7 @@ public class TablaExpresiones {
         return false;
     }
 
-    //VALIDO QUE TIPO DE EXPRESION ES
+    //VALIDO QUE TIPO DE EXPRESION DE DIM ES
     public static expresiones validar(List<TablaSimbolos.tokentype> linea) {
 
         if (linea == null || linea.isEmpty()) {
@@ -124,14 +138,33 @@ public class TablaExpresiones {
 
         //En caso de tener asignacion "=" Recorro las otras expresiones
         for (expresiones exp : expresiones.values()) {
-            
+
             // Omito F1 porque con "=" no puede ser F1
-            if (exp == expresiones.DIM_F1) continue;
-            
+            if (exp == expresiones.DIM_F1) {
+                continue;
+            }
+
             //comparo si la linea coincide con otras expresiones
             if (coincide(linea, exp.exp)) {
                 return exp; //retorno la expresion
             }
+        }
+        return null;
+    }
+
+    //VALIDO SI CUMPLE FORMATOS DE CONDICION WHILE - INICIO DEL CICLO
+    public static expresiones ValidarCondicionWhile(List<TablaSimbolos.tokentype> linea) {
+
+        if (linea == null || linea.isEmpty()) {
+            return null;
+        }
+        //Si coincide con formato  Tipo 1 retorno esa expresión.
+        if (coincide (linea, expresiones.WHILE_CONDICION.exp)){
+            return expresiones.WHILE_CONDICION;
+        }
+        //Si coincide con formato Tipo 2 retorno esa expresión.
+        if (coincide (linea, expresiones.WHILE_CONDICION_T2 .exp)){
+            return expresiones.WHILE_CONDICION_T2;
         }
         return null;
     }

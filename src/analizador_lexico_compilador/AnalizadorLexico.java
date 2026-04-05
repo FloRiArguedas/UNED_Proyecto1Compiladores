@@ -83,11 +83,17 @@ public class AnalizadorLexico {
 
                     //VALIDACION END MODULE
                     validador.ValidarEndModule(CompleteLine, cadena, linenum);
+                    
+                    //VALIDACIÓN BUCLE WHILE
+                    validador.ValidarBucleWhile(CompleteLine, CompleteTokensLine, linenum);
                 }
 
                 // PASO A LA SIGUIENTE LINEA DEL ARCHIVO
                 linenum++;
             }
+            
+            //Revisión de cierres de bucles.
+            validador.ExisteCierreWhile();
 
             //Cierro los archivos
             registrador.cerrarLogs();
