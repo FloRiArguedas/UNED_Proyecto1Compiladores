@@ -85,10 +85,10 @@ public class AnalizadorLexico {
                     validador.ValidarEndModule(CompleteLine, cadena, linenum);
                     
                     //VALIDACIÓN BUCLE WHILE
-                    validador.ValidarBucleWhile(CompleteLine, CompleteTokensLine, linenum);
+                    validador.ValidarBucleWhile(CompleteLine, CompleteTokensLine, linenum,cadena);
                     
                     //VALIDACIÓN BUCLE FOR
-                    validador.ValidarBucleFor(CompleteLine, CompleteTokensLine, linenum);
+                    validador.ValidarBucleFor(CompleteLine, CompleteTokensLine, linenum, cadena);
                 }
 
                 // PASO A LA SIGUIENTE LINEA DEL ARCHIVO

@@ -28,6 +28,7 @@ public class Validador {
     private boolean Error500Detectado = false;
     Stack<Integer> PilaWhile = new Stack<>();
     Stack<Integer> PilaFor = new Stack<>();
+    Stack<Boolean> PilaEstructuraFor = new Stack<>();
     private boolean ContenidoWhileValido = false;
     private boolean ContenidoForValido = false;
     //Diccionario para guardar variables nombre-tipo
@@ -672,7 +673,7 @@ public class Validador {
     }
 
     //VALIDACION #8 COMANDO WHILE (ERRORES 700)
-    public void ValidarBucleWhile(List<String> linea, List<TablaSimbolos.tokentype> tokentypes, int linenum) {
+    public void ValidarBucleWhile(List<String> linea, List<TablaSimbolos.tokentype> tokentypes, int linenum, String cadena) {
 
         //Valido si la linea esta vacia
         if (linea == null || linea.isEmpty()) {
@@ -744,8 +745,7 @@ public class Validador {
 
         if (!PilaWhile.isEmpty()) {
             //VALIDO CONTENIDO dentro del ciclo (No vacio, no comentario)
-            String PrimerToken = linea.get(0);
-            if (!PrimerToken.startsWith("'") && !token.equals("end")) {
+            if (!cadena.trim().startsWith("'") && !token.equals("end")) {
                 ContenidoWhileValido = true;
             }
         }
@@ -811,7 +811,7 @@ public class Validador {
     }
 
     //VALIDACION #9 COMANDO FOR (ERRORES 800)
-    public void ValidarBucleFor(List<String> linea, List<TablaSimbolos.tokentype> tokentypes, int linenum) {
+    public void ValidarBucleFor(List<String> linea, List<TablaSimbolos.tokentype> tokentypes, int linenum, String cadena) {
 
         //Valido si la linea esta vacia
         if (linea == null || linea.isEmpty()) {
@@ -819,6 +819,7 @@ public class Validador {
         }
 
         //BUSCO SI ESTA FOR
+        boolean EstructuraValida = false; //Bandera para verificar sintaxis correcta.
         //Normalizo el token por si trae caracteres adicionales
         String token = linea.get(0).replaceAll("[^A-Za-z]", "").toLowerCase();
 
@@ -828,6 +829,7 @@ public class Validador {
 
             //Valido si cumple con el tamaño correspondiente. -For variable_control = valor_inicial To valor_final- 
             if (linea.size() < 6) {
+                EstructuraValida = false;
                 String MensajeError = "ERROR 800: Formato inválido para el ciclo FOR.";
                 //System.out.println("Linea " + linenum + ": " + MensajeError);
                 try {
@@ -835,13 +837,14 @@ public class Validador {
                 } catch (IOException ex) {
                     System.getLogger(Validador.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
                 }
+                PilaEstructuraFor.push(EstructuraValida);
                 return; //salgo de la función, porque no cumple estructura.
             } else { //Si cumple con tamaño valido.
-
+                EstructuraValida = true;
                 //VALIDACIONES SINTÁCTICAS.
                 //Verifico que tenga el =
                 if (!linea.get(2).equals("=")) {
-
+                    EstructuraValida = false;
                     String MensajeError = "ERROR 801: Sintaxis FOR incorrecta, el comando FOR debe tener un '='";
                     //System.out.println("Linea " + linenum + ": " + MensajeError);
                     try {
@@ -856,6 +859,7 @@ public class Validador {
                 String valor_final = linea.get(5);
 
                 if (!valor_inicial.matches("^-?\\d+$") || !valor_final.matches("^-?\\d+$")) {
+                    EstructuraValida = false;
                     String MensajeError = "ERROR 802: Sintaxis FOR incorrecta, el valor inicial y/o valor final, deben ser numeros enteros.";
                     //System.out.println("Linea " + linenum + ": " + MensajeError);
                     try {
@@ -868,7 +872,7 @@ public class Validador {
                 //Verifico que aparezca el comando TO.
                 String TokenTo = linea.get(4).replaceAll("[^A-Za-z]", "").toLowerCase();
                 if (!TokenTo.equals("to")) {
-
+                    EstructuraValida = false;
                     String MensajeError = "ERROR 803: Sintaxis FOR incorrecta, el comando FOR debe tener el comando TO";
                     //System.out.println("Linea " + linenum + ": " + MensajeError);
                     try {
@@ -878,12 +882,12 @@ public class Validador {
                     }
                 }
             }
-
+            PilaEstructuraFor.push(EstructuraValida);//Ingreso bool de estructura a la pila.
+            return; //Salgo para validar la siguiente línea.
         }
         if (!PilaFor.isEmpty()) {
             //VALIDO CONTENIDO dentro del ciclo (No vacio, no comentario)
-            String PrimerToken = linea.get(0);
-            if (!PrimerToken.startsWith("'") && !token.equals("next")) {
+            if (!cadena.trim().startsWith("'") && !token.equals("next")) {
                 ContenidoForValido = true;
             }
         }
@@ -903,9 +907,10 @@ public class Validador {
             } else {
 
                 int lineaFor = PilaFor.pop();// Este Next cierra el For pendiente en la pila.
+                boolean estructura = PilaEstructuraFor.pop(); //Cierro la estructura de este ciclo.
 
-                //Si existe TO y NEXT valido el contenido
-                if (!ContenidoForValido) {
+                //Si existe TO y NEXT valido el contenido - Solo si la sintaxis es correcta.
+                if (estructura && !ContenidoForValido) {
                     String MensajeError = "ERROR 805: El bloque FOR debe tener codigo válido a ejecutar.";
                     //System.out.println("Linea " + lineaFor + ": " + MensajeError);
                     try {
