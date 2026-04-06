@@ -14,7 +14,8 @@ public class TablaSimbolos {
         Numero ("[0-9]+(\\.[0-9]+)?"), //Num ent y decimales
         Operador ("(<|>|<=|>=|<>)"),
         OperadorAritmetico ("(\\+|\\-|\\*|/)"),
-        Asignacion ("=");
+        Asignacion ("="),
+        Cadena("\"[^\"]*\""); //Cualquier conjunto de caracteres entre comillas. Consulta a la IA Promtp#9 
 
         public final String type;
 
@@ -63,6 +64,10 @@ public class TablaSimbolos {
        
        if (tokenNormalizado.matches(tokentype.Asignacion.type)){
            return tokentype.Asignacion;
+       }
+       
+       if (tokenNormalizado.matches(tokentype.Cadena.type)){
+           return tokentype.Cadena;
        }
        
        return null;
