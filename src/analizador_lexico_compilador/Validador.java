@@ -27,7 +27,9 @@ public class Validador {
     private boolean EstaEndModule = false;
     private boolean Error500Detectado = false;
     Stack<Integer> PilaWhile = new Stack<>();
+    Stack<Integer> PilaFor = new Stack<>();
     private boolean ContenidoWhileValido = false;
+    private boolean ContenidoForValido = false;
     //Diccionario para guardar variables nombre-tipo
     private final Map<String, String> variablesDeclaradas = new HashMap<>();
 
@@ -791,7 +793,7 @@ public class Validador {
         }
     }
 
-    //-- VALIDAR QUE SE CIERRE EL BUCLE WHILE
+    //-- VALIDACION #8.1: Validar cierre del bucle While.
     public void ExisteCierreWhile() {
 
         while (!PilaWhile.isEmpty()) { //Si no se vació la pila, muestro error.
@@ -805,6 +807,132 @@ public class Validador {
                 System.getLogger(Validador.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
             }
 
+        }
+    }
+
+    //VALIDACION #9 COMANDO FOR (ERRORES 800)
+    public void ValidarBucleFor(List<String> linea, List<TablaSimbolos.tokentype> tokentypes, int linenum) {
+
+        //Valido si la linea esta vacia
+        if (linea == null || linea.isEmpty()) {
+            return;
+        }
+
+        //BUSCO SI ESTA FOR
+        //Normalizo el token por si trae caracteres adicionales
+        String token = linea.get(0).replaceAll("[^A-Za-z]", "").toLowerCase();
+
+        if (token.equals("for")) {
+            PilaFor.push(linenum); //Ingreso este For a la Pila.
+            ContenidoForValido = false; //Bandera para revisar contenido
+
+            //Valido si cumple con el tamaño correspondiente. -For variable_control = valor_inicial To valor_final- 
+            if (linea.size() < 6) {
+                String MensajeError = "ERROR 800: Formato inválido para el ciclo FOR.";
+                //System.out.println("Linea " + linenum + ": " + MensajeError);
+                try {
+                    registrador.EscribirError(linenum, MensajeError);
+                } catch (IOException ex) {
+                    System.getLogger(Validador.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
+                }
+                return; //salgo de la función, porque no cumple estructura.
+            } else { //Si cumple con tamaño valido.
+
+                //VALIDACIONES SINTÁCTICAS.
+                //Verifico que tenga el =
+                if (!linea.get(2).equals("=")) {
+
+                    String MensajeError = "ERROR 801: Sintaxis FOR incorrecta, el comando FOR debe tener un '='";
+                    //System.out.println("Linea " + linenum + ": " + MensajeError);
+                    try {
+                        registrador.EscribirError(linenum, MensajeError);
+                    } catch (IOException ex) {
+                        System.getLogger(Validador.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
+                    }
+                }
+
+                //Verifico que valor inicial y valor final sean enteros
+                String valor_inicial = linea.get(3);
+                String valor_final = linea.get(5);
+
+                if (!valor_inicial.matches("^-?\\d+$") || !valor_final.matches("^-?\\d+$")) {
+                    String MensajeError = "ERROR 802: Sintaxis FOR incorrecta, el valor inicial y/o valor final, deben ser numeros enteros.";
+                    //System.out.println("Linea " + linenum + ": " + MensajeError);
+                    try {
+                        registrador.EscribirError(linenum, MensajeError);
+                    } catch (IOException ex) {
+                        System.getLogger(Validador.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
+                    }
+                }
+
+                //Verifico que aparezca el comando TO.
+                String TokenTo = linea.get(4).replaceAll("[^A-Za-z]", "").toLowerCase();
+                if (!TokenTo.equals("to")) {
+
+                    String MensajeError = "ERROR 803: Sintaxis FOR incorrecta, el comando FOR debe tener el comando TO";
+                    //System.out.println("Linea " + linenum + ": " + MensajeError);
+                    try {
+                        registrador.EscribirError(linenum, MensajeError);
+                    } catch (IOException ex) {
+                        System.getLogger(Validador.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
+                    }
+                }
+            }
+
+        }
+        if (!PilaFor.isEmpty()) {
+            //VALIDO CONTENIDO dentro del ciclo (No vacio, no comentario)
+            String PrimerToken = linea.get(0);
+            if (!PrimerToken.startsWith("'") && !token.equals("next")) {
+                ContenidoForValido = true;
+            }
+        }
+
+        //Verifico que exista NEXT
+        if (token.equals("next")) {
+
+            if (PilaFor.isEmpty()) { //Pila Vacía.
+                String MensajeError = "ERROR 804: Debe existir un FOR, antes del NEXT";
+                //System.out.println("Linea " + linenum + ": " + MensajeError);
+                try {
+                    registrador.EscribirError(linenum, MensajeError);
+                } catch (IOException ex) {
+                    System.getLogger(Validador.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
+                }
+                return; //Salgo de la función, para no evaluar más este ciclo.
+            } else {
+
+                int lineaFor = PilaFor.pop();// Este Next cierra el For pendiente en la pila.
+
+                //Si existe TO y NEXT valido el contenido
+                if (!ContenidoForValido) {
+                    String MensajeError = "ERROR 805: El bloque FOR debe tener codigo válido a ejecutar.";
+                    //System.out.println("Linea " + lineaFor + ": " + MensajeError);
+                    try {
+                        registrador.EscribirError(lineaFor, MensajeError);
+                    } catch (IOException ex) {
+                        System.getLogger(Validador.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
+                    }
+                }
+            }
+            //Limpio el contenido del ciclo.
+            ContenidoForValido = false;
+        }
+    }
+
+    //-- VALIDACION #9.1: Validar cierre del bucle FOR.
+    public void ExisteCierreFor() {
+        //Si hay un for en la Pila, error de cierre.
+        while (!PilaFor.isEmpty()) {
+            int lineaFor = PilaFor.pop();
+
+            String MensajeError = "ERROR 806: El bloque FOR en la línea: " + lineaFor + " debe cerrar con NEXT.";
+            //System.out.println("Linea " + linenum + ": " + MensajeError);
+            try {
+                registrador.EscribirError(lineaFor, MensajeError);
+            } catch (IOException ex) {
+                System.getLogger(Validador.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
+            }
         }
     }
 }

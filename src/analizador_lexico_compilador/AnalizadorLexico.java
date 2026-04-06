@@ -86,6 +86,9 @@ public class AnalizadorLexico {
                     
                     //VALIDACIÓN BUCLE WHILE
                     validador.ValidarBucleWhile(CompleteLine, CompleteTokensLine, linenum);
+                    
+                    //VALIDACIÓN BUCLE FOR
+                    validador.ValidarBucleFor(CompleteLine, CompleteTokensLine, linenum);
                 }
 
                 // PASO A LA SIGUIENTE LINEA DEL ARCHIVO
@@ -94,6 +97,7 @@ public class AnalizadorLexico {
             
             //Revisión de cierres de bucles.
             validador.ExisteCierreWhile();
+            validador.ExisteCierreFor();
 
             //Cierro los archivos
             registrador.cerrarLogs();
