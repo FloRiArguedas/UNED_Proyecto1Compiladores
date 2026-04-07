@@ -935,6 +935,7 @@ public class Validador {
         //Si hay un for en la Pila, error de cierre.
         while (!PilaFor.isEmpty()) {
             int lineaFor = PilaFor.pop();
+            PilaEstructuraFor.pop();
 
             String MensajeError = "ERROR 806: El bloque FOR en la línea: " + lineaFor + " debe cerrar con NEXT.";
             //System.out.println("Linea " + linenum + ": " + MensajeError);
@@ -963,51 +964,50 @@ public class Validador {
         if (token.equals("if")) {
             PilaIf.push(linenum); //Ingreso este If a la Pila.
 
-            //Valido si cumple con el tamaño correspondiente. If-condicion-Then 
-            if (linea.size() > 2) {
-                EstructuraValida = true;
+            //Busco que cumpla con: If-condicion-Then 
+            
+            //VALIDACIONES SINTÁCTICAS.
+            //Busco dónde está then.
+            int indiceThen = -1;
+            for (int i = 0; i < linea.size(); i++) {
+                String t = linea.get(i).replaceAll("[^A-Za-z]", "").toLowerCase();
 
-                //Si cumple con tamaño valido.
-                //VALIDACIONES SINTÁCTICAS.
-                //Verifico que tenga una CONDICIÓN después del IF.
-                TablaSimbolos.tokentype token1 = tokentypes.get(1);
-                if (token1 == TablaSimbolos.tokentype.Identificador || token1 == TablaSimbolos.tokentype.Numero
-                        || token1 == TablaSimbolos.tokentype.Cadena) { //Si tiene una condición valida, continuo.
-
-                    //Verifico si tiene THEN.
-                    String token2 = linea.get(2).replaceAll("[^A-Za-z]", "").toLowerCase();
-                    if (token2.endsWith("then")) {
-                        //SINTAXIS INICIO IF CORRECTO.
-                        PilaEstructuraIf.push(EstructuraValida);//Ingreso bool de estructura a la pila.
-                        return; //Salgo para validar la siguiente línea.
-                    } else {
-                        EstructuraValida = false;
-                        String MensajeError = "ERROR 900: Formato inválido para la sentencia IF. Debe tener THEN.";
-                        //System.out.println("Linea " + linenum + ": " + MensajeError);
-                        try {
-                            registrador.EscribirError(linenum, MensajeError);
-                        } catch (IOException ex) {
-                            System.getLogger(Validador.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
-                        }
-                        PilaEstructuraIf.push(EstructuraValida);//Ingreso bool de estructura a la pila.
-                        return; //Salgo de la función, porque no cumple estructura.
-                    }
-
-                } else { //Si no tiene condición. ERROR.
-                    EstructuraValida = false;
-                    String MensajeError = "ERROR 901: Formato inválido para la sentencia IF.Debe tener una CONDICIÓN.";
-                    //System.out.println("Linea " + linenum + ": " + MensajeError);
-                    try {
-                        registrador.EscribirError(linenum, MensajeError);
-                    } catch (IOException ex) {
-                        System.getLogger(Validador.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
-                    }
-                    PilaEstructuraIf.push(EstructuraValida);//Ingreso bool de estructura a la pila.
-                    return; //Salgo de la función, porque no cumple estructura.
+                if (t.equals("then")) {
+                    indiceThen = i;
+                    break;
                 }
             }
-            PilaEstructuraIf.push(EstructuraValida);//Ingreso bool de estructura a la pila.
-            return; //Salgo de la función, porque no cumple estructura.
+            if (indiceThen == -1) { //Si no está THEN. ERROR.
+
+                EstructuraValida = false;
+                String MensajeError = "ERROR 900: Sintaxis incorrecta, la sentencia IF debe tener THEN.";
+                //System.out.println("Linea " + linenum + ": " + MensajeError);
+                try {
+                    registrador.EscribirError(linenum, MensajeError);
+                } catch (IOException ex) {
+                    System.getLogger(Validador.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
+                }
+                PilaEstructuraIf.push(EstructuraValida);//Ingreso bool de estructura a la pila.
+                return; //Salgo de la función, porque no cumple estructura.
+
+            } else if (indiceThen <= 1) { //Si no tiene CONDICION entre IF y THEN. ERROR.
+                EstructuraValida = false;
+                String MensajeError = "ERROR 901: Sintaxis incorrecta, la sentencia IF debe tener una CONDICIÓN.";
+                //System.out.println("Linea " + linenum + ": " + MensajeError);
+                try {
+                    registrador.EscribirError(linenum, MensajeError);
+                } catch (IOException ex) {
+                    System.getLogger(Validador.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
+                }
+                PilaEstructuraIf.push(EstructuraValida);//Ingreso bool de estructura a la pila.
+                return; //Salgo de la función, porque no cumple estructura.
+
+            } else {
+                //SINTAXIS INICIO IF CORRECTO.
+                EstructuraValida = true;
+                PilaEstructuraIf.push(EstructuraValida);//Ingreso bool de estructura a la pila.
+                return; //Salgo para validar la siguiente línea.
+            }
         }
 
         //Verifico que exista ELSE.
@@ -1027,7 +1027,7 @@ public class Validador {
 
             //Si llegué al ELSE y no encontré sentencia del THEN. Error.
             if (!SentenciaThen) {
-                String MensajeError = "ERROR 902: El bloque THEN no contiene una sentencia válida.";
+                String MensajeError = "ERROR 903: El bloque THEN no contiene una sentencia válida.";
                 //System.out.println("Linea " + linenum + ": " + MensajeError);
                 try {
                     registrador.EscribirError(linenum, MensajeError);
@@ -1074,7 +1074,7 @@ public class Validador {
 
                 //Si ya pasó ELSE y no encontré sentencia del ELSE. Error.
                 if (estructura && EstaElse && !SentenciaElse) {
-                    String MensajeError = "ERROR 903: El bloque ELSE no contiene una sentencia válida.";
+                    String MensajeError = "ERROR 905: El bloque ELSE no contiene una sentencia válida.";
                     //System.out.println("Linea " + linenum + ": " + MensajeError);
                     try {
                         registrador.EscribirError(linenum, MensajeError);
@@ -1084,8 +1084,8 @@ public class Validador {
                 }
 
                 //Si no había ELSE, valido igual la sentencia del THEN.
-                if (estructura && !EstaElse &&!SentenciaThen) {
-                    String MensajeError = "ERROR 902: El bloque THEN no contiene una sentencia válida.";
+                if (estructura && !EstaElse && !SentenciaThen) {
+                    String MensajeError = "ERROR 903: El bloque THEN no contiene una sentencia válida.";
                     //System.out.println("Linea " + linenum + ": " + MensajeError);
                     try {
                         registrador.EscribirError(linenum, MensajeError);
@@ -1098,6 +1098,23 @@ public class Validador {
                 SentenciaThen = false;
                 SentenciaElse = false;
                 EstaElse = false;
+            }
+        }
+    }
+    //-- VALIDACION #10.1: Validar cierre del bucle FOR.
+
+    public void ExisteCierreIf() {
+        //Si hay un for en la Pila, error de cierre.
+        while (!PilaIf.isEmpty()) {
+            int lineaIf = PilaIf.pop();
+            PilaEstructuraIf.pop(); //
+
+            String MensajeError = "ERROR 906: La Condición IF en la línea: " + lineaIf + " debe cerrar con END IF.";
+            //System.out.println("Linea " + linenum + ": " + MensajeError);
+            try {
+                registrador.EscribirError(lineaIf, MensajeError);
+            } catch (IOException ex) {
+                System.getLogger(Validador.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
             }
         }
     }

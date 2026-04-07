@@ -89,15 +89,19 @@ public class AnalizadorLexico {
                     
                     //VALIDACIÓN BUCLE FOR
                     validador.ValidarBucleFor(CompleteLine, CompleteTokensLine, linenum, cadena);
+                    
+                    //VALIDACIÓN COMANDO IF
+                    validador.ValidarComandoIf(CompleteLine, CompleteTokensLine, linenum, cadena);
                 }
 
                 // PASO A LA SIGUIENTE LINEA DEL ARCHIVO
                 linenum++;
             }
             
-            //Revisión de cierres de bucles.
+            //Revisión de cierres de bucles y comandos.
             validador.ExisteCierreWhile();
             validador.ExisteCierreFor();
+            validador.ExisteCierreIf();
 
             //Cierro los archivos
             registrador.cerrarLogs();
