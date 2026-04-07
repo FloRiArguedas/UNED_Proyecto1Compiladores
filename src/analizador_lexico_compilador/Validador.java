@@ -407,8 +407,8 @@ public class Validador {
         //Busco la posición del 1er "("
         int ParentesisAbrir = lineaString.indexOf("(");
 
-        //Busco el 1er ")" luego del "("
-        int ParentesisCerrar = lineaString.indexOf(")", ParentesisAbrir + 1);
+        //Busco el último ")" de todo el string.
+        int ParentesisCerrar = lineaString.lastIndexOf(")");
 
         //Verifico que se hayan encontrado "( )"
         if (ParentesisAbrir == -1 || ParentesisCerrar == -1 || ParentesisCerrar < ParentesisAbrir) {
@@ -665,7 +665,7 @@ public class Validador {
 
         //Verifico que la línea no tenga apóstrofe en otra posición
         if (!LineaOriginal.startsWith("'") && LineaOriginal.contains("'")) {
-            String MensajeError = "ERROR 600: Comentario Inválido. La línea debe iniciar con 'apóstrofe.";
+            String MensajeError = "ERROR 600: Comentario Invalido. La linea debe iniciar con 'apostrofe.";
             //System.out.println("Linea " + linenum + ": " + MensajeError);
             try {
                 registrador.EscribirError(linenum, MensajeError);
