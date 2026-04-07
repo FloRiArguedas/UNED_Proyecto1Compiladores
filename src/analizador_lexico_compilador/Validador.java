@@ -113,20 +113,6 @@ public class Validador {
             return;
         }
 
-        /*//Valido si existe Module
-        int indiceModule = -1;
-        for (int i = 0; i < linea.size(); i++) {
-            // Normalizo el token por si trae caracteres adicionales
-            String token = linea.get(i).replaceAll("[^A-Za-z]", "").toLowerCase();
-
-            if (token.equals("module")) {
-                indiceModule = i;
-                break;
-            }
-        } //Si encuentro el token module activo la bandera
-        if (indiceModule != -1) {
-            EstaModule = true;
-        }*/
         //Verifico si la linea comienza con la palabra dim
         if (linea.get(0).equalsIgnoreCase("dim")) {
             //Verifico que dim aparezca luego de module
@@ -154,8 +140,32 @@ public class Validador {
 
             //Llamo a la Funcion Validar para ver que tipo de expresion es
             TablaExpresiones.expresiones TipoExpresion = TablaExpresiones.validar(tokentypes);
+            //System.out.println("LINEA: " + linea);
+            //System.out.println("TOKENS: " + tokentypes);
+
             //Si la linea no coincide con una expresion, envio error
             if (TipoExpresion == null) {
+
+                //Solo para Dim x as STRING = Valor.
+                String tipoDato = linea.get(3).toLowerCase();//Verifico el tipo de dato del DIM.
+                if (tipoDato.equals("string")) { //Si es una declaración de variable String, verifico.
+                    //Verifico si VALOR, es una cadena entre "".
+                    int indiceIgual = obtenerIndiceAsignacion(tokentypes);
+                    if (indiceIgual != -1) {
+                        StringBuilder valor = new StringBuilder(); //Creo SB para ingresar el string del valor.
+                        for (int i = indiceIgual + 1; i < linea.size(); i++) {
+                            valor.append(linea.get(i)).append(" ");
+                        }
+                        String ValorString = valor.toString().trim(); //Paso el SB a String normal, sin espacios.
+
+                        //Verifico si ese valor es una "cadena".
+                        if (ValorString.matches("\"[^\"]*\"")) { //Cualquier conjunto de caracteres entre comillas. Consulta a la IA Promtp#9 
+                            return; // Si era una cadena, retorno, porque es formato 2 para String válido.
+                        }
+                    }
+                }
+
+                //Si no cumplió con estructura. ERROR.
                 String MensajeError = "ERROR 200: La declaracion de variable no coincide con el formato adecuado";
                 //System.out.println("Linea " + linenum + MensajeError);
                 try {
@@ -407,7 +417,7 @@ public class Validador {
         //Busco la posición del 1er "("
         int ParentesisAbrir = lineaString.indexOf("(");
 
-        //Busco el último ")" de todo el string.
+        //Busco el último ")" de todo el string. Consulta a la IA. Prompt #10.
         int ParentesisCerrar = lineaString.lastIndexOf(")");
 
         //Verifico que se hayan encontrado "( )"
@@ -965,7 +975,6 @@ public class Validador {
             PilaIf.push(linenum); //Ingreso este If a la Pila.
 
             //Busco que cumpla con: If-condicion-Then 
-            
             //VALIDACIONES SINTÁCTICAS.
             //Busco dónde está then.
             int indiceThen = -1;
