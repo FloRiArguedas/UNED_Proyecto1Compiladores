@@ -20,8 +20,8 @@ public class Validador {
     }
 
     //Banderas
-    private boolean BanderaIdent = false;
-    private boolean BanderaTD = false;
+    public boolean BanderaIdent = false;
+    public boolean BanderaTD = false;
     private boolean EstaModule = false;
     private boolean EstaImports = false;
     private boolean EstaEndModule = false;
@@ -142,26 +142,24 @@ public class Validador {
             TablaExpresiones.expresiones TipoExpresion = TablaExpresiones.validar(tokentypes);
             //System.out.println("LINEA: " + linea);
             //System.out.println("TOKENS: " + tokentypes);
+            //System.out.println("EXPRESION DETECTADA: " + TipoExpresion);
 
             //Si la linea no coincide con una expresion, envio error
             if (TipoExpresion == null) {
 
-                //Solo para Dim x as STRING = Valor.
-                String tipoDato = linea.get(3).toLowerCase();//Verifico el tipo de dato del DIM.
-                if (tipoDato.equals("string")) { //Si es una declaración de variable String, verifico.
-                    //Verifico si VALOR, es una cadena entre "".
-                    int indiceIgual = obtenerIndiceAsignacion(tokentypes);
-                    if (indiceIgual != -1) {
-                        StringBuilder valor = new StringBuilder(); //Creo SB para ingresar el string del valor.
-                        for (int i = indiceIgual + 1; i < linea.size(); i++) {
-                            valor.append(linea.get(i)).append(" ");
-                        }
-                        String ValorString = valor.toString().trim(); //Paso el SB a String normal, sin espacios.
+                //Solo para Dim x as tipo_dato = Valor. (Valor = cadena).
+                //Verifico si VALOR, es una cadena entre "".
+                int indiceIgual = obtenerIndiceAsignacion(tokentypes);
+                if (indiceIgual != -1) {
+                    StringBuilder valor = new StringBuilder(); //Creo SB para ingresar el string del valor.
+                    for (int i = indiceIgual + 1; i < linea.size(); i++) {
+                        valor.append(linea.get(i)).append(" ");
+                    }
+                    String ValorString = valor.toString().trim(); //Paso el SB a String normal, sin espacios.
 
-                        //Verifico si ese valor es una "cadena".
-                        if (ValorString.matches("\"[^\"]*\"")) { //Cualquier conjunto de caracteres entre comillas. Consulta a la IA Promtp#9 
-                            return; // Si era una cadena, retorno, porque es formato 2 para String válido.
-                        }
+                    //Verifico si ese valor es una "cadena".
+                    if (ValorString.matches("\"[^\"]*\"")) { //Cualquier conjunto de caracteres entre comillas. Consulta a la IA Promtp#9 
+                        return; // Si era una cadena, retorno, porque es formato 2 para String válido.
                     }
                 }
 

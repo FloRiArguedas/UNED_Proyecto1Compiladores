@@ -42,6 +42,9 @@ public class AnalizadorLexico {
                 //TEMPORAL PARA MOSTRAR EN CONSOLA LAS LINEAS
                 //System.out.println("Linea " + linenum + ": " + cadena);
 
+                validador.BanderaIdent = false;
+                validador.BanderaTD = false;
+
                 //ESCRIBIR EN ARCHIVO LOGS
                 registrador.EscribirLinea(linenum, cadena);
 
@@ -69,7 +72,6 @@ public class AnalizadorLexico {
 
                         //VALIDACION DE PALABRAS RESERVADAS
                         validador.ValidarReservadas(palabra, type, linenum);
-
                     }
 
                     //VALIDACION DE ESTRUCTURA DE MODULE
@@ -83,13 +85,13 @@ public class AnalizadorLexico {
 
                     //VALIDACION END MODULE
                     validador.ValidarEndModule(CompleteLine, cadena, linenum);
-                    
+
                     //VALIDACIÓN BUCLE WHILE
-                    validador.ValidarBucleWhile(CompleteLine, CompleteTokensLine, linenum,cadena);
-                    
+                    validador.ValidarBucleWhile(CompleteLine, CompleteTokensLine, linenum, cadena);
+
                     //VALIDACIÓN BUCLE FOR
                     validador.ValidarBucleFor(CompleteLine, CompleteTokensLine, linenum, cadena);
-                    
+
                     //VALIDACIÓN COMANDO IF
                     validador.ValidarComandoIf(CompleteLine, CompleteTokensLine, linenum, cadena);
                 }
@@ -97,7 +99,7 @@ public class AnalizadorLexico {
                 // PASO A LA SIGUIENTE LINEA DEL ARCHIVO
                 linenum++;
             }
-            
+
             //Revisión de cierres de bucles y comandos.
             validador.ExisteCierreWhile();
             validador.ExisteCierreFor();
@@ -113,9 +115,8 @@ public class AnalizadorLexico {
     }
 }
 
-
 //Esta función solo se uso para pruebas.
-    /*
+/*
     public void MostrarTypeConsola(TablaSimbolos.tokentype type, int linenum, String palabra) {
 
         //MOSTRAR EL CONSOLA EL TIPO DE TOKEN

@@ -139,6 +139,11 @@ public class TablaExpresiones {
         //En caso de tener asignacion "=" Recorro las otras expresiones
         for (expresiones exp : expresiones.values()) {
 
+            //Ignoro las de WHILE porque no corresponden.
+            if (exp == expresiones.WHILE_CONDICION || exp == expresiones.WHILE_CONDICION_T2) {
+                continue;
+            }
+
             // Omito F1 porque con "=" no puede ser F1
             if (exp == expresiones.DIM_F1) {
                 continue;
@@ -159,11 +164,11 @@ public class TablaExpresiones {
             return null;
         }
         //Si coincide con formato  Tipo 1 retorno esa expresión.
-        if (coincide (linea, expresiones.WHILE_CONDICION.exp)){
+        if (coincide(linea, expresiones.WHILE_CONDICION.exp)) {
             return expresiones.WHILE_CONDICION;
         }
         //Si coincide con formato Tipo 2 retorno esa expresión.
-        if (coincide (linea, expresiones.WHILE_CONDICION_T2 .exp)){
+        if (coincide(linea, expresiones.WHILE_CONDICION_T2.exp)) {
             return expresiones.WHILE_CONDICION_T2;
         }
         return null;
