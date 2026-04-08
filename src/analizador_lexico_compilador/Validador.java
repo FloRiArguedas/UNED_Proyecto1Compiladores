@@ -68,7 +68,7 @@ public class Validador {
             }
             //Valido que el IDENT sea correcto luego de DIM (ERROR 205 FORMATO VARIABLES)
             if (type != TablaSimbolos.tokentype.Identificador) {
-                String MensajeError = "ERROR 205: El identificador posee un formato inválido.";
+                String MensajeError = "ERROR 205: El identificador posee un formato invalido.";
                 //System.out.println("Linea " + linenum + MensajeError);
                 try {
                     registrador.EscribirError(linenum, MensajeError);
@@ -360,7 +360,7 @@ public class Validador {
 
         //REGISTRO ERRORES DE ()
         if (indiceApertura == -1) {
-            String MensajeError = "ERROR 300: Falta paréntesis de apertura '(' en Console.WriteLine.";
+            String MensajeError = "ERROR 300: Falta parentesis de apertura '(' en Console.WriteLine.";
             //System.out.println("Linea " + linenum + MensajeError);
             try {
                 registrador.EscribirError(linenum, MensajeError);
@@ -370,7 +370,7 @@ public class Validador {
         }
 
         if (indiceCierre == -1) {
-            String MensajeError = "ERROR 301: Falta paréntesis de cierre ')' en Console.WriteLine.";
+            String MensajeError = "ERROR 301: Falta parentesis de cierre ')' en Console.WriteLine.";
             //System.out.println("Linea " + linenum + MensajeError);
             try {
                 registrador.EscribirError(linenum, MensajeError);
@@ -382,7 +382,7 @@ public class Validador {
         if (indiceApertura != -1 && indiceCierre != -1) {
 
             if (indiceCierre < indiceApertura) {
-                String MensajeError = "ERROR 302: El paréntesis de cierre ')' aparece antes del paréntesis de apertura '(' en Console.WriteLine.";
+                String MensajeError = "ERROR 302: El parentesis de cierre ')' aparece antes del paréntesis de apertura '(' en Console.WriteLine.";
                 //System.out.println("Linea " + linenum + MensajeError);
                 try {
                     registrador.EscribirError(linenum, MensajeError);
@@ -395,7 +395,7 @@ public class Validador {
                 int posicionApertura = token.indexOf('(');
                 //Si el de cierre está antes que el de apertura. ERROR
                 if (posicionCierre < posicionApertura) {
-                    String MensajeError = "ERROR 302: El paréntesis de cierre ')' aparece antes del paréntesis de apertura '(' en Console.WriteLine.";
+                    String MensajeError = "ERROR 302: El parentesis de cierre ')' aparece antes del parentesis de apertura '(' en Console.WriteLine.";
                     //System.out.println("Linea " + linenum + MensajeError);
                     try {
                         registrador.EscribirError(linenum, MensajeError);
@@ -428,7 +428,7 @@ public class Validador {
 
         //VALIDACION#4.3 NO PUEDEN ESTAR VACIOS LOS "( )"
         if (ContenidoParentesis.isEmpty()) {
-            String MensajeError = "ERROR 303: El contenido dentro de paréntesis no puede estar vacío.";
+            String MensajeError = "ERROR 303: El contenido dentro de parentesis no puede estar vacio.";
             //System.out.println("Linea " + linenum + MensajeError);
             try {
                 registrador.EscribirError(linenum, MensajeError);
@@ -718,7 +718,7 @@ public class Validador {
                 //Verifico que la variable de la condición esté declarada.
                 String VariableCondicion = linea.get(1).toLowerCase();
                 if (!variablesDeclaradas.containsKey(VariableCondicion)) {
-                    String MensajeError = "ERROR 701: La variable de la condición While, debe estar declarada.";
+                    String MensajeError = "ERROR 701: La variable de la condicion While, debe estar declarada.";
                     //System.out.println("Linea " + linenum + ": " + MensajeError);
                     try {
                         registrador.EscribirError(linenum, MensajeError);
@@ -729,7 +729,7 @@ public class Validador {
                 //Verifico que la variable de la condición sea integer
                 String TipoVariable = variablesDeclaradas.get(VariableCondicion);
                 if (TipoVariable != null && !TipoVariable.equals("integer")) {
-                    String MensajeError = "ERROR 702: La variable de la condición While, debe ser de tipo INTEGER";
+                    String MensajeError = "ERROR 702: La variable de la condicion While, debe ser de tipo INTEGER";
                     //System.out.println("Linea " + linenum + ": " + MensajeError);
                     try {
                         registrador.EscribirError(linenum, MensajeError);
@@ -743,7 +743,7 @@ public class Validador {
                 if (linea.size() > 3) {
                     String Numero = linea.get(3);
                     if (!Numero.matches("^-?\\d+$")) {
-                        String MensajeError = "ERROR 703: El Número de la condición While, debe ser un entero.";
+                        String MensajeError = "ERROR 703: El Numero de la condicion While, debe ser un entero.";
                         //System.out.println("Linea " + linenum + ": " + MensajeError);
                         try {
                             registrador.EscribirError(linenum, MensajeError);
@@ -812,7 +812,7 @@ public class Validador {
         while (!PilaWhile.isEmpty()) { //Si no se vació la pila, muestro error.
             int lineaWhile = PilaWhile.pop(); //Guardo cuál linea de While es.
 
-            String MensajeError = "ERROR 706: El bloque WHILE en la línea: " + lineaWhile + " debe cerrar con END WHILE.";
+            String MensajeError = "ERROR 706: El bloque WHILE en la linea: " + lineaWhile + " debe cerrar con END WHILE.";
             //System.out.println("Linea " + linenum + ": " + MensajeError);
             try {
                 registrador.EscribirError(lineaWhile, MensajeError);
@@ -843,7 +843,7 @@ public class Validador {
             //Valido si cumple con el tamaño correspondiente. -For variable_control = valor_inicial To valor_final- 
             if (linea.size() < 6) {
                 EstructuraValida = false;
-                String MensajeError = "ERROR 800: Formato inválido para el ciclo FOR.";
+                String MensajeError = "ERROR 800: Formato invalido para el ciclo FOR.";
                 //System.out.println("Linea " + linenum + ": " + MensajeError);
                 try {
                     registrador.EscribirError(linenum, MensajeError);
@@ -924,7 +924,7 @@ public class Validador {
 
                 //Si existe TO y NEXT valido el contenido - Solo si la sintaxis es correcta.
                 if (estructura && !ContenidoForValido) {
-                    String MensajeError = "ERROR 805: El bloque FOR debe tener codigo válido a ejecutar.";
+                    String MensajeError = "ERROR 805: El bloque FOR debe tener codigo valido a ejecutar.";
                     //System.out.println("Linea " + lineaFor + ": " + MensajeError);
                     try {
                         registrador.EscribirError(lineaFor, MensajeError);
@@ -945,7 +945,7 @@ public class Validador {
             int lineaFor = PilaFor.pop();
             PilaEstructuraFor.pop();
 
-            String MensajeError = "ERROR 806: El bloque FOR en la línea: " + lineaFor + " debe cerrar con NEXT.";
+            String MensajeError = "ERROR 806: El bloque FOR en la linea: " + lineaFor + " debe cerrar con NEXT.";
             //System.out.println("Linea " + linenum + ": " + MensajeError);
             try {
                 registrador.EscribirError(lineaFor, MensajeError);
@@ -999,7 +999,7 @@ public class Validador {
 
             } else if (indiceThen <= 1) { //Si no tiene CONDICION entre IF y THEN. ERROR.
                 EstructuraValida = false;
-                String MensajeError = "ERROR 901: Sintaxis incorrecta, la sentencia IF debe tener una CONDICIÓN.";
+                String MensajeError = "ERROR 901: Sintaxis incorrecta, la sentencia IF debe tener una CONDICION.";
                 //System.out.println("Linea " + linenum + ": " + MensajeError);
                 try {
                     registrador.EscribirError(linenum, MensajeError);
@@ -1034,7 +1034,7 @@ public class Validador {
 
             //Si llegué al ELSE y no encontré sentencia del THEN. Error.
             if (!SentenciaThen) {
-                String MensajeError = "ERROR 903: El bloque THEN no contiene una sentencia válida.";
+                String MensajeError = "ERROR 903: El bloque THEN no contiene una sentencia valida.";
                 //System.out.println("Linea " + linenum + ": " + MensajeError);
                 try {
                     registrador.EscribirError(linenum, MensajeError);
@@ -1081,7 +1081,7 @@ public class Validador {
 
                 //Si ya pasó ELSE y no encontré sentencia del ELSE. Error.
                 if (estructura && EstaElse && !SentenciaElse) {
-                    String MensajeError = "ERROR 905: El bloque ELSE no contiene una sentencia válida.";
+                    String MensajeError = "ERROR 905: El bloque ELSE no contiene una sentencia valida.";
                     //System.out.println("Linea " + linenum + ": " + MensajeError);
                     try {
                         registrador.EscribirError(linenum, MensajeError);
@@ -1092,7 +1092,7 @@ public class Validador {
 
                 //Si no había ELSE, valido igual la sentencia del THEN.
                 if (estructura && !EstaElse && !SentenciaThen) {
-                    String MensajeError = "ERROR 903: El bloque THEN no contiene una sentencia válida.";
+                    String MensajeError = "ERROR 903: El bloque THEN no contiene una sentencia valida.";
                     //System.out.println("Linea " + linenum + ": " + MensajeError);
                     try {
                         registrador.EscribirError(linenum, MensajeError);
@@ -1116,7 +1116,7 @@ public class Validador {
             int lineaIf = PilaIf.pop();
             PilaEstructuraIf.pop(); //
 
-            String MensajeError = "ERROR 906: La Condición IF en la línea: " + lineaIf + " debe cerrar con END IF.";
+            String MensajeError = "ERROR 906: La Condicion IF en la linea: " + lineaIf + " debe cerrar con END IF.";
             //System.out.println("Linea " + linenum + ": " + MensajeError);
             try {
                 registrador.EscribirError(lineaIf, MensajeError);
